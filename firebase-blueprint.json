@@ -1,0 +1,31 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the application",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The unique identifier for the user" },
+        "email": { "type": "string", "format": "email", "description": "The user's email address" },
+        "name": { "type": "string", "description": "The user's full name" },
+        "password": { "type": "string", "description": "Password (demo only)" },
+        "role": { "type": "string", "enum": ["student", "parent", "admin", "visitor"], "description": "The user's role" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"], "description": "The user's approval status" },
+        "studentId": { "type": "string", "description": "The student ID (if applicable)" },
+        "class": { "type": "number", "description": "The student's class (if applicable)" },
+        "section": { "type": "string", "enum": ["A", "B", "IoT", "GEW", "CCS", "RAC"], "description": "The student's section (if applicable)" },
+        "guardianPhone": { "type": "string", "description": "The guardian's phone number (if applicable)" },
+        "phone": { "type": "string", "description": "The user's phone number" },
+        "linkedChildId": { "type": "string", "description": "The linked child's ID (for parents)" },
+        "createdAt": { "type": "number", "description": "The timestamp when the user was created" }
+      },
+      "required": ["id", "email", "name", "role", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profiles"
+    }
+  }
+}

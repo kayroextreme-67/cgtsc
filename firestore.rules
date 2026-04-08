@@ -1,0 +1,128 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - id: string (required)
+    //   - email: string (required)
+    //   - name: string (required)
+    //   - password: string (optional)
+    //   - role: string (required, 'student', 'parent', 'admin', 'visitor')
+    //   - status: string (required, 'pending', 'approved', 'rejected')
+    //   - studentId: string (optional)
+    //   - class: number (optional)
+    //   - section: string (optional, 'A', 'B', 'IoT', 'GEW', 'CCS', 'RAC')
+    //   - guardianPhone: string (optional)
+    //   - phone: string (optional)
+    //   - linkedChildId: string (optional)
+    //   - createdAt: number (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         request.auth.token.email == "ahnafa870@gmail.com");
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function hasOnlyAllowedFields(allowedFields) {
+      return request.resource.data.keys().hasOnly(allowedFields);
+    }
+
+    function isValidUser(data) {
+      let allowedFields = ['id', 'email', 'name', 'password', 'role', 'status', 'studentId', 'class', 'section', 'guardianPhone', 'phone', 'linkedChildId', 'photoUrl', 'createdAt'];
+      return hasOnlyAllowedFields(allowedFields) &&
+             data.id is string &&
+             data.email is string && isValidEmail(data.email) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             (!('password' in data) || data.password is string) &&
+             data.role in ['student', 'parent', 'admin', 'visitor'] &&
+             data.status in ['pending', 'approved', 'rejected'] &&
+             (!('studentId' in data) || data.studentId == null || data.studentId is string) &&
+             (!('class' in data) || data.class == null || data.class is number) &&
+             (!('section' in data) || data.section == null || data.section in ['A', 'B', 'IoT', 'GEW', 'CCS', 'RAC']) &&
+             (!('guardianPhone' in data) || data.guardianPhone == null || data.guardianPhone is string) &&
+             (!('phone' in data) || data.phone == null || data.phone is string) &&
+             (!('linkedChildId' in data) || data.linkedChildId == null || data.linkedChildId is string) &&
+             (!('photoUrl' in data) || data.photoUrl == null || data.photoUrl is string) &&
+             data.createdAt is number;
+    }
+
+    match /users/{userId} {
+      // Anyone can read user profiles for now (or restrict to authenticated users)
+      allow read: if isAuthenticated();
+      
+      // Allow users to create their own profile, but they cannot make themselves admin unless they are already admin
+      allow create: if isAuthenticated() && 
+                    isOwner(userId) && 
+                    isValidUser(request.resource.data) && 
+                    (request.resource.data.role != 'admin' || isAdmin());
+
+      // Allow users to update their own profile, but they cannot change their role or status unless they are admin
+      // EXCEPT when they are completing their profile for the first time (visitor + pending)
+      allow update: if isAuthenticated() && 
+                    isValidUser(request.resource.data) && 
+                    (
+                      isAdmin() || 
+                      (
+                        isOwner(userId) && 
+                        request.resource.data.createdAt == resource.data.createdAt &&
+                        (
+                          (request.resource.data.role == resource.data.role && request.resource.data.status == resource.data.status) ||
+                          (
+                            resource.data.role == 'visitor' && 
+                            resource.data.status == 'pending' &&
+                            request.resource.data.role in ['student', 'parent', 'visitor'] &&
+                            (
+                              (request.resource.data.role == 'visitor' && request.resource.data.status == 'approved') ||
+                              (request.resource.data.role != 'visitor' && request.resource.data.status == 'pending')
+                            )
+                          )
+                        )
+                      )
+                    );
+                    
+      allow delete: if isAdmin();
+    }
+
+    match /notices/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /exams/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /teachers/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /site_content/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

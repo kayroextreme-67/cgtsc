@@ -1,0 +1,183 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, CheckCircle2, User, Mail, Phone, BookOpen } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { useForm, ValidationError } from '@formspree/react';
+
+export default function ApplyOnline() {
+  const navigate = useNavigate();
+  const [state, handleSubmit] = useForm('xwvwnnqp');
+  const [formData, setFormData] = useState({
+    studentName: '',
+    fatherName: '',
+    motherName: '',
+    dob: '',
+    gender: '',
+    religion: '',
+    bloodGroup: '',
+    phone: '',
+    email: '',
+    address: '',
+    previousSchool: '',
+    classToApply: '',
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  if (state.succeeded) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative transition-colors duration-300">
+        <div className="absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(#1e3a8a 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+        <div className="sm:mx-auto sm:w-full sm:w-[95%] md:max-w-md relative z-10 text-center">
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="mx-auto h-24 w-24 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6">
+            <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
+          </motion.div>
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Application Submitted!</h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-8">
+            Thank you for applying to Chatkhil Government Technical School and College. We will review your application and contact you soon.
+          </p>
+          <div className="space-y-4">
+            <Link to="/" className="w-full flex justify-center py-3 px-4 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              Return to Home
+            </Link>
+            <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Already got admission confirmation?</p>
+              <Link to="/login" className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                Upgrade to Student/Parent Account
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8 relative transition-colors duration-300">
+      <div className="absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(#1e3a8a 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+      
+      <div className="w-[95%] md:max-w-2xl lg:max-w-3xl mx-auto relative z-10">
+        <Link to="/admission" className="inline-flex items-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white mb-8 font-medium transition-colors">
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back to Admission Info
+        </Link>
+        
+        <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] border border-slate-100 dark:border-slate-800 overflow-hidden">
+          <div className="bg-blue-600 dark:bg-blue-900 p-8 text-white text-center">
+            <h1 className="text-3xl font-bold mb-2">Online Admission Application</h1>
+            <p className="text-blue-100">Fill out the form below to apply for the 2026 academic year.</p>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="p-8 space-y-8">
+            {/* Personal Info */}
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center border-b border-slate-100 dark:border-slate-800 pb-2">
+                <User className="w-5 h-5 mr-2 text-blue-500" /> Personal Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Student's Full Name *</label>
+                  <input required type="text" name="studentName" value={formData.studentName} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Date of Birth *</label>
+                  <input required type="date" name="dob" value={formData.dob} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Gender *</label>
+                  <select required name="gender" value={formData.gender} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Blood Group</label>
+                  <select name="bloodGroup" value={formData.bloodGroup} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
+                    <option value="">Select Blood Group</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Family Info */}
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center border-b border-slate-100 dark:border-slate-800 pb-2">
+                <User className="w-5 h-5 mr-2 text-blue-500" /> Family Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Father's Name *</label>
+                  <input required type="text" name="fatherName" value={formData.fatherName} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mother's Name *</label>
+                  <input required type="text" name="motherName" value={formData.motherName} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+                </div>
+              </div>
+            </div>
+
+            {/* Contact Info */}
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center border-b border-slate-100 dark:border-slate-800 pb-2">
+                <Phone className="w-5 h-5 mr-2 text-blue-500" /> Contact Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Phone Number *</label>
+                  <input required type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
+                  <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Present Address *</label>
+                  <textarea required name="address" value={formData.address} onChange={handleChange} rows={3} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"></textarea>
+                </div>
+              </div>
+            </div>
+
+            {/* Academic Info */}
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center border-b border-slate-100 dark:border-slate-800 pb-2">
+                <BookOpen className="w-5 h-5 mr-2 text-blue-500" /> Academic Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Class to Apply For *</label>
+                  <select required name="classToApply" value={formData.classToApply} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
+                    <option value="">Select Class</option>
+                    <option value="6">Class 6</option>
+                    <option value="9">Class 9 (SSC Vocational)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Previous School Name *</label>
+                  <input required type="text" name="previousSchool" value={formData.previousSchool} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6">
+              <button type="submit" disabled={state.submitting} className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm shadow-blue-500/20 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                {state.submitting ? 'Submitting...' : 'Submit Application'}
+              </button>
+              <ValidationError errors={state.errors} />
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
