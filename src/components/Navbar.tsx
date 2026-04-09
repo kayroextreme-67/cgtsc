@@ -5,12 +5,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { motion, AnimatePresence } from 'motion/react';
-import { getSiteContent, SiteContent } from '../lib/db';
+import { useSiteContent } from '../contexts/SiteContentContext';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [settings, setSettings] = useState<SiteContent | null>(null);
+  const { settings } = useSiteContent();
   const location = useLocation();
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
@@ -22,14 +22,6 @@ export default function Navbar() {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    const loadSettings = async () => {
-      const data = await getSiteContent('settings');
-      setSettings(data || { id: 'settings' });
-    };
-    loadSettings();
   }, []);
 
   const navLinks = [

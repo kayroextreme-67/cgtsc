@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, User, Mail, Phone, BookOpen } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, User, Mail, Phone, BookOpen, PlusCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useForm, ValidationError } from '@formspree/react';
+import { useSiteContent } from '../contexts/SiteContentContext';
 
 export default function ApplyOnline() {
   const navigate = useNavigate();
+  const { content } = useSiteContent();
   const [state, handleSubmit] = useForm('xwvwnnqp');
   const [formData, setFormData] = useState({
     studentName: '',
@@ -160,6 +162,7 @@ export default function ApplyOnline() {
                     <option value="">Select Class</option>
                     <option value="6">Class 6</option>
                     <option value="9">Class 9 (SSC Vocational)</option>
+                    <option value="11">Class 11 (HSC Vocational)</option>
                   </select>
                 </div>
                 <div>
@@ -168,6 +171,62 @@ export default function ApplyOnline() {
                 </div>
               </div>
             </div>
+
+            {/* Custom Fields */}
+            {content?.admissionFormFields && content.admissionFormFields.length > 0 && (
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center border-b border-slate-100 dark:border-slate-800 pb-2">
+                  <PlusCircle className="w-5 h-5 mr-2 text-blue-500" /> Additional Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {content.admissionFormFields.map((field: any) => (
+                    <div key={field.id} className={field.type === 'textarea' ? 'md:col-span-2' : ''}>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        {field.label} {field.required && '*'}
+                      </label>
+                      {field.type === 'select' ? (
+                        <select
+                          required={field.required}
+                          name={field.label}
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                        >
+                          <option value="">Select {field.label}</option>
+                          {field.options?.split(',').map((opt: string) => (
+                            <option key={opt.trim()} value={opt.trim()}>
+                              {opt.trim()}
+                            </option>
+                          ))}
+                        </select>
+                      ) : field.type === 'textarea' ? (
+                        <textarea
+                          required={field.required}
+                          name={field.label}
+                          rows={3}
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                        />
+                      ) : field.type === 'checkbox' ? (
+                        <div className="flex items-center h-full pt-2">
+                          <input
+                            required={field.required}
+                            type="checkbox"
+                            name={field.label}
+                            className="w-5 h-5 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600"
+                          />
+                          <span className="ml-3 text-sm text-slate-700 dark:text-slate-300">Yes</span>
+                        </div>
+                      ) : (
+                        <input
+                          required={field.required}
+                          type={field.type}
+                          name={field.label}
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="pt-6">
               <button type="submit" disabled={state.submitting} className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm shadow-blue-500/20 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed">

@@ -3,17 +3,16 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Users, Monitor, Calendar, FileText, ChevronRight, Sparkles, GraduationCap } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
 import { useLanguage } from '../contexts/LanguageContext';
-import { getSiteContent, getNotices, SiteContent, Notice } from '../lib/db';
+import { getNotices, Notice } from '../lib/db';
+import { useSiteContent } from '../contexts/SiteContentContext';
 
 export default function Home() {
   const { t } = useLanguage();
-  const [content, setContent] = useState<SiteContent | null>(null);
+  const { content } = useSiteContent();
   const [notices, setNotices] = useState<Notice[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
-      const siteContent = await getSiteContent('main');
-      setContent(siteContent || { id: 'main' });
       const siteNotices = await getNotices();
       setNotices(siteNotices.slice(0, 5)); // Show top 5 notices
     };

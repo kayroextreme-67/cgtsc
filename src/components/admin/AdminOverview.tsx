@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getDbUsers, User } from '../../lib/db';
-import { Users, UserCheck, Clock, ShieldCheck, Activity } from 'lucide-react';
+import { Users, UserCheck, Clock, ShieldCheck, Activity, BarChart2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export default function AdminOverview() {
   const [users, setUsers] = useState<User[]>([]);
@@ -16,15 +17,37 @@ export default function AdminOverview() {
     loadData();
   }, []);
 
+  const chartData = useMemo(() => {
+    const roles = {
+      student: 0,
+      parent: 0,
+      admin: 0,
+      visitor: 0
+    };
+    
+    users.forEach(user => {
+      if (user.role && roles[user.role as keyof typeof roles] !== undefined) {
+        roles[user.role as keyof typeof roles]++;
+      }
+    });
+
+    return [
+      { name: 'Students', count: roles.student, color: '#22c55e' },
+      { name: 'Parents', count: roles.parent, color: '#a855f7' },
+      { name: 'Admins', count: roles.admin, color: '#ef4444' },
+      { name: 'Visitors', count: roles.visitor, color: '#64748b' }
+    ];
+  }, [users]);
+
   if (loading) {
     return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>;
   }
 
   const stats = [
-    { label: 'Total Users', value: users.length, icon: Users, color: 'bg-blue-500' },
-    { label: 'Students', value: users.filter(u => u.role === 'student').length, icon: UserCheck, color: 'bg-green-500' },
-    { label: 'Parents', value: users.filter(u => u.role === 'parent').length, icon: Users, color: 'bg-purple-500' },
-    { label: 'Pending Approvals', value: users.filter(u => u.status === 'pending').length, icon: Clock, color: 'bg-amber-500' },
+    { label: 'Total Users', value: users.length, icon: Users, bgColor: 'bg-blue-100 dark:bg-blue-900/30', textColor: 'text-blue-600 dark:text-blue-400' },
+    { label: 'Students', value: users.filter(u => u.role === 'student').length, icon: UserCheck, bgColor: 'bg-green-100 dark:bg-green-900/30', textColor: 'text-green-600 dark:text-green-400' },
+    { label: 'Parents', value: users.filter(u => u.role === 'parent').length, icon: Users, bgColor: 'bg-purple-100 dark:bg-purple-900/30', textColor: 'text-purple-600 dark:text-purple-400' },
+    { label: 'Pending Approvals', value: users.filter(u => u.status === 'pending').length, icon: Clock, bgColor: 'bg-amber-100 dark:bg-amber-900/30', textColor: 'text-amber-600 dark:text-amber-400' },
   ];
 
   return (
@@ -45,8 +68,8 @@ export default function AdminOverview() {
                   <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{stat.label}</p>
                   <p className="text-3xl font-bold text-slate-900 dark:text-white mt-2">{stat.value}</p>
                 </div>
-                <div className={`p-3 rounded-xl ${stat.color} bg-opacity-10 dark:bg-opacity-20`}>
-                  <Icon className={`w-6 h-6 ${stat.color.replace('bg-', 'text-')}`} />
+                <div className={`p-3 rounded-xl ${stat.bgColor}`}>
+                  <Icon className={`w-6 h-6 ${stat.textColor}`} />
                 </div>
               </div>
             </motion.div>
@@ -78,13 +101,38 @@ export default function AdminOverview() {
           </div>
         </div>
         
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-center min-h-[300px]">
-          <div className="text-center">
-            <div className="w-32 h-32 mx-auto rounded-full border-4 border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-center mb-4">
-              <Activity className="w-8 h-8 text-slate-400" />
-            </div>
-            <p className="text-slate-500 dark:text-slate-400">Chart Placeholder</p>
-            <p className="text-sm text-slate-400 dark:text-slate-500">User growth over time</p>
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col min-h-[300px]">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+            <BarChart2 className="w-5 h-5 text-blue-500" /> User Distribution
+          </h3>
+          <div className="flex-1 w-full h-full min-h-[250px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#64748b', fontSize: 12 }} 
+                  dy={10}
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#64748b', fontSize: 12 }}
+                  allowDecimals={false}
+                />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(226, 232, 240, 0.4)' }}
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={50}>
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>

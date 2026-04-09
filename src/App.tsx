@@ -24,35 +24,38 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { SiteContentProvider } from './contexts/SiteContentContext';
 
 export default function App() {
   return (
     <ThemeProvider>
       <LanguageProvider>
         <ToastProvider>
-          <AuthProvider>
-            <Router>
-              <Routes>
-                <Route path="/" element={<Layout />}>
-                  <Route index element={<Home />} />
-                  <Route path="about" element={<About />} />
-                  <Route path="academics" element={<Academics />} />
-                  <Route path="admission" element={<Admission />} />
-                  <Route path="notices" element={<Notices />} />
-                  <Route path="teachers" element={<Teachers />} />
-                  <Route path="gallery" element={<Gallery />} />
-                  <Route path="contact" element={<Contact />} />
-                  <Route path="results" element={<Results />} />
-                  <Route path="dashboard" element={<Dashboard />} />
-                  <Route path="admin" element={<AdminDashboard />} />
-                </Route>
-                <Route path="/login" element={<Login />} />
-                <Route path="/create-profile" element={<CreateProfile />} />
-                <Route path="/pending-approval" element={<PendingApproval />} />
-                <Route path="/apply" element={<ApplyOnline />} />
-              </Routes>
-            </Router>
-          </AuthProvider>
+          <SiteContentProvider>
+            <AuthProvider>
+              <Router>
+                <Routes>
+                  <Route path="/" element={<Layout />}>
+                    <Route index element={<Home />} />
+                    <Route path="about" element={<About />} />
+                    <Route path="academics" element={<Academics />} />
+                    <Route path="admission" element={<Admission />} />
+                    <Route path="notices" element={<Notices />} />
+                    <Route path="teachers" element={<Teachers />} />
+                    <Route path="gallery" element={<Gallery />} />
+                    <Route path="contact" element={<Contact />} />
+                    <Route path="results" element={<Results />} />
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="admin" element={<AdminDashboard />} />
+                  </Route>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/create-profile" element={<CreateProfile />} />
+                  <Route path="/pending-approval" element={<PendingApproval />} />
+                  <Route path="/apply" element={<ApplyOnline />} />
+                </Routes>
+              </Router>
+            </AuthProvider>
+          </SiteContentProvider>
         </ToastProvider>
       </LanguageProvider>
     </ThemeProvider>

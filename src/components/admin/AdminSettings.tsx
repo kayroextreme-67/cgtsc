@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { getSiteContent, updateSiteContent, SiteContent } from '../../lib/db';
 import { Save, CheckCircle2, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useSiteContent } from '../../contexts/SiteContentContext';
 
 export default function AdminSettings() {
+  const { refreshContent } = useSiteContent();
   const [settings, setSettings] = useState<SiteContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -43,6 +45,7 @@ export default function AdminSettings() {
     if (settings) {
       setSaving(true);
       await updateSiteContent('settings', settings);
+      await refreshContent();
       setSaving(false);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);

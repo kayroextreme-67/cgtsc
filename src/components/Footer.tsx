@@ -1,23 +1,11 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail, Facebook, Twitter, Youtube, GraduationCap, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { getSiteContent, SiteContent } from '../lib/db';
+import { useSiteContent } from '../contexts/SiteContentContext';
 
 export default function Footer() {
   const { t } = useLanguage();
-  const [settings, setSettings] = useState<SiteContent | null>(null);
-  const [content, setContent] = useState<SiteContent | null>(null);
-
-  useEffect(() => {
-    const loadData = async () => {
-      const siteSettings = await getSiteContent('settings');
-      setSettings(siteSettings || { id: 'settings' });
-      const siteContent = await getSiteContent('main');
-      setContent(siteContent || { id: 'main' });
-    };
-    loadData();
-  }, []);
+  const { settings, content } = useSiteContent();
 
   return (
     <footer className="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 pt-16 pb-8 transition-colors duration-300">

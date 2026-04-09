@@ -167,8 +167,17 @@ export interface Teacher {
   createdAt: number;
 }
 
+export interface CustomFormField {
+  id: string;
+  label: string;
+  type: 'text' | 'email' | 'number' | 'date' | 'select' | 'textarea' | 'checkbox';
+  required: boolean;
+  options?: string; // Comma separated for select
+}
+
 export interface SiteContent {
   id: string;
+  admissionFormFields?: CustomFormField[];
   [key: string]: any;
 }
 

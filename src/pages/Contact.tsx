@@ -1,23 +1,14 @@
-import { useState, useEffect } from 'react';
-import { MapPin, Phone, Mail, Clock, Send, CheckCircle2 } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Send, CheckCircle2, Navigation } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useForm, ValidationError } from '@formspree/react';
 import { motion } from 'motion/react';
-import { getSiteContent, SiteContent } from '../lib/db';
+import { useSiteContent } from '../contexts/SiteContentContext';
 
 export default function Contact() {
   const { t } = useLanguage();
-  const [state, handleSubmit] = useForm('xwvwnnqp');
-  const [content, setContent] = useState<SiteContent | null>(null);
-
-  useEffect(() => {
-    const loadData = async () => {
-      const siteContent = await getSiteContent('main');
-      setContent(siteContent || { id: 'main' });
-    };
-    loadData();
-  }, []);
+  const [state, handleSubmit] = useForm('xlgokeyd');
+  const { content } = useSiteContent();
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 pb-20">
@@ -154,20 +145,42 @@ export default function Contact() {
               </div>
             </ScrollReveal>
 
-            {/* Google Map (Placeholder iframe) */}
+            {/* Google Map Link Button */}
             <ScrollReveal delay={0.3}>
-              <div className="bg-white dark:bg-slate-900 p-2 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] border border-slate-100 dark:border-slate-800 h-[400px] overflow-hidden">
-                <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3663.886036814197!2d90.9572!3d23.0512!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjPCsDAzJzA0LjMiTiA5MMKwNTcnMjUuOSJF!5e0!3m2!1sen!2sbd!4v1620000000000!5m2!1sen!2sbd" 
-                  width="100%" 
-                  height="100%" 
-                  style={{ border: 0, borderRadius: '1.25rem' }} 
-                  allowFullScreen={true} 
-                  loading="lazy"
-                  title="Google Map Location"
-                  className="grayscale hover:grayscale-0 transition-all duration-500"
-                ></iframe>
-              </div>
+              <a 
+                href="https://maps.app.goo.gl/yWYE6M9Eo17SNU739" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block bg-white dark:bg-slate-900 p-8 md:p-12 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] border border-slate-100 dark:border-slate-800 relative group overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgb(59,130,246,0.1)]"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 to-transparent dark:from-blue-900/20 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Decorative background elements */}
+                <div className="absolute -right-10 -top-10 w-40 h-40 bg-blue-100/50 dark:bg-blue-900/20 rounded-full blur-3xl group-hover:bg-blue-200/50 dark:group-hover:bg-blue-800/20 transition-colors duration-500"></div>
+                <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-purple-100/50 dark:bg-purple-900/20 rounded-full blur-3xl group-hover:bg-purple-200/50 dark:group-hover:bg-purple-800/20 transition-colors duration-500"></div>
+
+                <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-blue-400/20 dark:bg-blue-500/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 group-hover:scale-150"></div>
+                    <div className="w-24 h-24 bg-white dark:bg-slate-800 shadow-xl rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-500 relative z-10 border border-slate-50 dark:border-slate-700">
+                      <MapPin className="h-12 w-12 text-blue-600 dark:text-blue-400 group-hover:text-blue-500 transition-colors" />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      View on Google Maps
+                    </h3>
+                    <p className="text-lg text-slate-600 dark:text-slate-400 max-w-md mx-auto">
+                      Click here to open our location directly in the Google Maps app for easy navigation and directions.
+                    </p>
+                  </div>
+                  
+                  <div className="inline-flex items-center justify-center px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-medium group-hover:bg-blue-600 dark:group-hover:bg-blue-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-slate-900/20 dark:shadow-white/10 group-hover:shadow-blue-500/30">
+                    Open Map <Navigation className="ml-2 h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                  </div>
+                </div>
+              </a>
             </ScrollReveal>
 
           </div>

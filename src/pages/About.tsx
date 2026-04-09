@@ -1,20 +1,11 @@
-import { useState, useEffect } from 'react';
 import { BookOpen, Target, Award } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
 import { useLanguage } from '../contexts/LanguageContext';
-import { getSiteContent, SiteContent } from '../lib/db';
+import { useSiteContent } from '../contexts/SiteContentContext';
 
 export default function About() {
   const { t } = useLanguage();
-  const [content, setContent] = useState<SiteContent | null>(null);
-
-  useEffect(() => {
-    const loadData = async () => {
-      const siteContent = await getSiteContent('main');
-      setContent(siteContent || { id: 'main' });
-    };
-    loadData();
-  }, []);
+  const { content } = useSiteContent();
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
