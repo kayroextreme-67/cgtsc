@@ -97,6 +97,7 @@ export default function AdminUsers() {
             <option value="all">All Roles</option>
             <option value="student">Students</option>
             <option value="parent">Parents</option>
+            <option value="visitor">Visitors</option>
             <option value="admin">Admins</option>
           </select>
           <select

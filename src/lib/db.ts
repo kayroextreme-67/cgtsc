@@ -98,6 +98,80 @@ export const updateUser = async (id: string, updates: Partial<User>): Promise<Us
   }
 };
 
+export interface AdmissionApplication {
+  id: string;
+  userId: string;
+  studentName: string;
+  fatherName: string;
+  motherName: string;
+  dob: string;
+  gender: string;
+  religion: string;
+  bloodGroup: string;
+  phone: string;
+  email: string;
+  address: string;
+  previousSchool: string;
+  classToApply: string;
+  transactionId: string;
+  paymentStatus: string;
+  amountPaid: string;
+  paymentDate: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: number;
+}
+
+export const createApplication = async (application: Omit<AdmissionApplication, 'id' | 'createdAt'>): Promise<AdmissionApplication | null> => {
+  const insertData: AdmissionApplication = {
+    ...application,
+    id: crypto.randomUUID(),
+    createdAt: Date.now()
+  };
+  
+  try {
+    await setDoc(doc(db, 'applications', insertData.id), insertData);
+    return insertData;
+  } catch (error: any) {
+    console.error('Error creating application:', error);
+    return null;
+  }
+};
+
+export const getApplications = async (): Promise<AdmissionApplication[]> => {
+  try {
+    const querySnapshot = await getDocs(collection(db, 'applications'));
+    return querySnapshot.docs.map(doc => doc.data() as AdmissionApplication);
+  } catch (error) {
+    console.error('Error fetching applications:', error);
+    return [];
+  }
+};
+
+export const getUserApplication = async (userId: string): Promise<AdmissionApplication | undefined> => {
+  try {
+    const q = query(collection(db, 'applications'), where('userId', '==', userId));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      return querySnapshot.docs[0].data() as AdmissionApplication;
+    }
+    return undefined;
+  } catch (error) {
+    console.error('Error fetching user application:', error);
+    return undefined;
+  }
+};
+
+export const updateApplication = async (id: string, updates: Partial<AdmissionApplication>): Promise<boolean> => {
+  try {
+    const docRef = doc(db, 'applications', id);
+    await updateDoc(docRef, updates);
+    return true;
+  } catch (error: any) {
+    console.error('Error updating application:', error);
+    return false;
+  }
+};
+
 // Verify if a student exists and the guardian phone matches
 export const verifyStudentForParent = async (studentId: string, guardianPhone: string): Promise<{ success: boolean; message?: string; studentName?: string }> => {
   try {
@@ -178,6 +252,7 @@ export interface CustomFormField {
 export interface SiteContent {
   id: string;
   admissionFormFields?: CustomFormField[];
+  admissionFee?: string;
   [key: string]: any;
 }
 

@@ -15,13 +15,14 @@ exports.handler = async (event, context) => {
     // 🔒 SECURE CONFIGURATION (Never exposed to frontend)
     // =====================================================================
     const RUPANTOR_API_URL = "https://payment.rupantorpay.com/api/payment/checkout"; 
-    const API_KEY = "iL0lFlwFPatsCs9gDh9lGBPvm7wE"; // API Key from Brands
-    const DOMAIN = "cgtsc.netlify.app"; // Your domain for X-CLIENT header
+    const API_KEY = process.env.RUPANTOR_API_KEY || "iL0lFlwFPatsCs9gDh9lGBPvm7wE"; // Fallback for local testing
+    const DOMAIN = process.env.FRONTEND_DOMAIN || "cgtsc.netlify.app"; // Your domain for X-CLIENT header
     
-    const ADMISSION_FEE = "500"; // Set the required admission fee amount here
+    // Use the amount from the frontend, fallback to 500 if not provided
+    const ADMISSION_FEE = data.amount || "500"; 
     
-    const SUCCESS_URL = "https://cgtsc.netlify.app/admission/success.html"; 
-    const CANCEL_URL = "https://cgtsc.netlify.app/admission/index.html";
+    const SUCCESS_URL = `https://${DOMAIN}/payment-success`; 
+    const CANCEL_URL = `https://${DOMAIN}/apply`;
     // =====================================================================
 
     // Construct payload for Rupantor Pay API based on documentation
@@ -33,9 +34,8 @@ exports.handler = async (event, context) => {
       cancel_url: CANCEL_URL,
       metadata: {
         phone: data.phone,
-        roll: data.roll,
-        course: data.course,
-        address: data.address
+        address: data.address,
+        classToApply: data.classToApply
       }
     };
 

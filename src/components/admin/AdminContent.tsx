@@ -196,6 +196,16 @@ export default function AdminContent() {
                 className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Admission Fee (৳)</label>
+              <input
+                type="number"
+                value={content.admissionFee || ''}
+                onChange={(e) => handleChange('admissionFee', e.target.value)}
+                placeholder="500"
+                className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
           </div>
 
           <div className="mt-6 border-t border-slate-100 dark:border-slate-800 pt-4">

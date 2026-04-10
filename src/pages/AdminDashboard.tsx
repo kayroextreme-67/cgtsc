@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { ShieldCheck, Users, LayoutDashboard, FileText, Settings, LogOut, Menu, Bell, FileSpreadsheet, GraduationCap, User as UserIcon } from 'lucide-react';
+import { ShieldCheck, Users, LayoutDashboard, FileText, Settings, LogOut, Menu, Bell, FileSpreadsheet, GraduationCap, User as UserIcon, ClipboardList } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
 import AdminOverview from '../components/admin/AdminOverview';
 import AdminUsers from '../components/admin/AdminUsers';
@@ -11,8 +11,9 @@ import AdminNotices from '../components/admin/AdminNotices';
 import AdminResults from '../components/admin/AdminResults';
 import AdminTeachers from '../components/admin/AdminTeachers';
 import AdminProfile from '../components/admin/AdminProfile';
+import AdminApplications from '../components/admin/AdminApplications';
 
-type TabType = 'dashboard' | 'users' | 'teachers' | 'notices' | 'results' | 'content' | 'settings' | 'profile';
+type TabType = 'dashboard' | 'users' | 'applications' | 'teachers' | 'notices' | 'results' | 'content' | 'settings' | 'profile';
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
@@ -33,6 +34,7 @@ export default function AdminDashboard() {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'users', label: 'User Management', icon: Users },
+    { id: 'applications', label: 'Applications', icon: ClipboardList },
     { id: 'teachers', label: 'Teachers', icon: GraduationCap },
     { id: 'notices', label: 'Notices', icon: Bell },
     { id: 'results', label: 'Results', icon: FileSpreadsheet },
@@ -107,6 +109,7 @@ export default function AdminDashboard() {
           <ScrollReveal>
             {activeTab === 'dashboard' && <AdminOverview />}
             {activeTab === 'users' && <AdminUsers />}
+            {activeTab === 'applications' && <AdminApplications />}
             {activeTab === 'teachers' && <AdminTeachers />}
             {activeTab === 'notices' && <AdminNotices />}
             {activeTab === 'results' && <AdminResults />}

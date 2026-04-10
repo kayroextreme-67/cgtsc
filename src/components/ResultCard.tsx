@@ -106,9 +106,9 @@ export default function ResultCard({ data }: ResultCardProps) {
     const opt = {
       margin:       0,
       filename:     `${data.name.replace(/\s+/g, '_')}_Result_${data.year}.pdf`,
-      image:        { type: 'jpeg', quality: 1 },
+      image:        { type: 'jpeg' as const, quality: 1 },
       html2canvas:  { scale: 3, useCORS: true, logging: false, windowWidth: 794, windowHeight: 1123 },
-      jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' }
+      jsPDF:        { unit: 'px', format: [794, 1123] as [number, number], orientation: 'portrait' as const }
     };
 
     html2pdf().set(opt).from(element).save().then(() => {

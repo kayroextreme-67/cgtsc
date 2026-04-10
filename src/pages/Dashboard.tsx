@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Bell, FileText, Award, LogOut, BookOpen, Calendar, ChevronRight, Users, Edit2, Camera, X, Save } from 'lucide-react';
+import { User, Bell, FileText, Award, LogOut, BookOpen, Calendar, ChevronRight, Users, Edit2, Camera, X, Save, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import ScrollReveal from '../components/ScrollReveal';
-import { updateUser, getExams, ExamResult, getNotices, Notice } from '../lib/db';
+import { updateUser, getExams, ExamResult, getNotices, Notice, getUserApplication, AdmissionApplication } from '../lib/db';
 import { storage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '../contexts/ToastContext';
@@ -22,6 +22,7 @@ export default function Dashboard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [latestResult, setLatestResult] = useState<any>(null);
   const [recentNotices, setRecentNotices] = useState<Notice[]>([]);
+  const [userApplication, setUserApplication] = useState<AdmissionApplication | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -35,12 +36,19 @@ export default function Dashboard() {
       try {
         const notices = await getNotices();
         setRecentNotices(notices.slice(0, 3));
+        
+        if (user && user.role === 'visitor') {
+          const app = await getUserApplication(user.id);
+          if (app) {
+            setUserApplication(app);
+          }
+        }
       } catch (error) {
-        console.error("Error fetching notices:", error);
+        console.error("Error fetching data:", error);
       }
     };
     fetchData();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const fetchLatestResult = async () => {
@@ -70,6 +78,9 @@ export default function Dashboard() {
       fetchLatestResult();
     }
   }, [user]);
+
+  const [upgradeForm, setUpgradeForm] = useState({ studentId: '', classLevel: '', section: '', roll: '' });
+  const [isUpgrading, setIsUpgrading] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -146,6 +157,141 @@ export default function Dashboard() {
       setSavingProfile(false);
     }
   };
+
+  const handleUpgradeAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    setIsUpgrading(true);
+    try {
+      await updateUser(user.id, {
+        role: 'student',
+        status: 'pending',
+        studentId: upgradeForm.studentId,
+        class: parseInt(upgradeForm.classLevel),
+        section: upgradeForm.section as any
+      });
+      await refreshUser();
+      toast.success('Upgrade request submitted! Please wait for admin approval.');
+      navigate('/pending-approval');
+    } catch (error) {
+      toast.error('Failed to submit upgrade request.');
+    } finally {
+      setIsUpgrading(false);
+    }
+  };
+
+  if (isVisitor) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-100 dark:border-slate-800 text-center">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Welcome, {user.name}!</h1>
+            <p className="text-slate-600 dark:text-slate-400 mb-8">You are currently logged in as a Visitor/Applicant.</p>
+            
+            {userApplication ? (
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-2xl border border-blue-100 dark:border-blue-800/30 text-left mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    Your Application
+                  </h3>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${
+                    userApplication.status === 'approved' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                    userApplication.status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                    'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                  }`}>
+                    {userApplication.status}
+                  </span>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-slate-500 dark:text-slate-400 block">Student Name</span>
+                    <span className="font-medium text-slate-900 dark:text-white">{userApplication.studentName}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 dark:text-slate-400 block">Class Applied For</span>
+                    <span className="font-medium text-slate-900 dark:text-white">Class {userApplication.classToApply}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 dark:text-slate-400 block">Payment Status</span>
+                    <span className="font-medium text-slate-900 dark:text-white">{userApplication.paymentStatus}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 dark:text-slate-400 block">Transaction ID</span>
+                    <span className="font-medium text-slate-900 dark:text-white">{userApplication.transactionId}</span>
+                  </div>
+                </div>
+                {userApplication.status === 'pending' && (
+                  <div className="mt-6 flex justify-end">
+                    <Link to="/apply" className="px-4 py-2 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-xl font-medium hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors">
+                      Update Application
+                    </Link>
+                  </div>
+                )}
+              </div>
+            ) : null}
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {!userApplication && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-2xl border border-blue-100 dark:border-blue-800/30">
+                  <BookOpen className="w-10 h-10 text-blue-600 dark:text-blue-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Apply for Admission</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">Start your journey with us by filling out the online admission form.</p>
+                  <Link to="/apply" className="inline-block w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors">
+                    Go to Admission Form
+                  </Link>
+                </div>
+              )}
+
+              <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-2xl border border-green-100 dark:border-green-800/30">
+                <User className="w-10 h-10 text-green-600 dark:text-green-400 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Already Admitted?</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">If you have been admitted and received your Student ID, upgrade your account here.</p>
+                <button onClick={() => setIsEditingProfile(true)} className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition-colors">
+                  Upgrade to Student Account
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {isEditingProfile && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-xl">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">Upgrade Account</h3>
+                  <button onClick={() => setIsEditingProfile(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+                <form onSubmit={handleUpgradeAccount} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Student ID</label>
+                    <input required type="text" value={upgradeForm.studentId} onChange={e => setUpgradeForm({...upgradeForm, studentId: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Class</label>
+                    <select required value={upgradeForm.classLevel} onChange={e => setUpgradeForm({...upgradeForm, classLevel: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
+                      <option value="">Select Class</option>
+                      <option value="6">Class 6</option>
+                      <option value="9">Class 9</option>
+                      <option value="11">Class 11</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Section/Trade</label>
+                    <input required type="text" value={upgradeForm.section} onChange={e => setUpgradeForm({...upgradeForm, section: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+                  </div>
+                  <button type="submit" disabled={isUpgrading} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium disabled:opacity-50">
+                    {isUpgrading ? 'Submitting...' : 'Submit Request'}
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   const calculateGrade = (marks: number | string) => {
     if (marks === 'A' || marks === 'a') return 'F';

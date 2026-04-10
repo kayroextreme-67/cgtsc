@@ -20,6 +20,7 @@ import CreateProfile from './pages/CreateProfile';
 import PendingApproval from './pages/PendingApproval';
 import AdminDashboard from './pages/AdminDashboard';
 import ApplyOnline from './pages/ApplyOnline';
+import PaymentSuccess from './pages/PaymentSuccess';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
@@ -52,6 +53,7 @@ export default function App() {
                   <Route path="/create-profile" element={<CreateProfile />} />
                   <Route path="/pending-approval" element={<PendingApproval />} />
                   <Route path="/apply" element={<ApplyOnline />} />
+                  <Route path="/payment-success" element={<PaymentSuccess />} />
                 </Routes>
               </Router>
             </AuthProvider>

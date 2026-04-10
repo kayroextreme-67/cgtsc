@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, User, Mail, Phone, BookOpen, PlusCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, User, Mail, Phone, BookOpen, PlusCircle, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useForm, ValidationError } from '@formspree/react';
 import { useSiteContent } from '../contexts/SiteContentContext';
+import { useAuth } from '../contexts/AuthContext';
+import { getUserApplication, updateApplication, AdmissionApplication } from '../lib/db';
+import { useToast } from '../contexts/ToastContext';
 
 export default function ApplyOnline() {
   const navigate = useNavigate();
   const { content } = useSiteContent();
-  const [state, handleSubmit] = useForm('xwvwnnqp');
+  const { user } = useAuth();
+  const toast = useToast();
+  const [existingApp, setExistingApp] = useState<AdmissionApplication | null>(null);
   const [formData, setFormData] = useState({
     studentName: '',
     fatherName: '',
@@ -24,37 +28,151 @@ export default function ApplyOnline() {
     classToApply: '',
   });
 
+  useEffect(() => {
+    const fetchApp = async () => {
+      if (user) {
+        const app = await getUserApplication(user.id);
+        if (app) {
+          setExistingApp(app);
+          setFormData({
+            studentName: app.studentName || '',
+            fatherName: app.fatherName || '',
+            motherName: app.motherName || '',
+            dob: app.dob || '',
+            gender: app.gender || '',
+            religion: app.religion || '',
+            bloodGroup: app.bloodGroup || '',
+            phone: app.phone || '',
+            email: app.email || '',
+            address: app.address || '',
+            previousSchool: app.previousSchool || '',
+            classToApply: app.classToApply || '',
+          });
+        }
+      }
+    };
+    fetchApp();
+  }, [user]);
+
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
+
+  const admissionFee = content?.admissionFee || "500";
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  if (state.succeeded) {
+  if (!user) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative transition-colors duration-300">
         <div className="absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(#1e3a8a 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
         <div className="sm:mx-auto sm:w-full sm:w-[95%] md:max-w-md relative z-10 text-center">
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="mx-auto h-24 w-24 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6">
-            <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="mx-auto h-24 w-24 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-6">
+            <Lock className="h-10 w-10 text-blue-600 dark:text-blue-400" />
           </motion.div>
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Application Submitted!</h2>
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Account Required</h2>
           <p className="text-slate-600 dark:text-slate-400 mb-8">
-            Thank you for applying to Chatkhil Government Technical School and College. We will review your application and contact you soon.
+            You must create a Visitor Account or log in to apply for admission. This allows you to track your application and update your profile later if admitted.
           </p>
           <div className="space-y-4">
-            <Link to="/" className="w-full flex justify-center py-3 px-4 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-              Return to Home
+            <Link to="/login" className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+              Log In
             </Link>
-            <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Already got admission confirmation?</p>
-              <Link to="/login" className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors">
-                Upgrade to Student/Parent Account
-              </Link>
-            </div>
+            <Link to="/create-profile" className="w-full flex justify-center py-3 px-4 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              Create Visitor Account
+            </Link>
           </div>
         </div>
       </div>
     );
   }
+
+  const handlePaymentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsProcessing(true);
+    setPaymentError('');
+
+    // Capture all form data including custom fields
+    const form = e.currentTarget;
+    const formDataObj = new FormData(form);
+    const data = Object.fromEntries(formDataObj.entries());
+
+    if (existingApp) {
+      // Update existing application directly
+      try {
+        const success = await updateApplication(existingApp.id, {
+          studentName: data.studentName as string,
+          fatherName: data.fatherName as string,
+          motherName: data.motherName as string,
+          dob: data.dob as string,
+          gender: data.gender as string,
+          religion: data.religion as string,
+          bloodGroup: data.bloodGroup as string,
+          phone: data.phone as string,
+          email: data.email as string,
+          address: data.address as string,
+          previousSchool: data.previousSchool as string,
+          classToApply: data.classToApply as string,
+        });
+
+        if (success) {
+          toast.success('Application updated successfully!');
+          navigate('/dashboard');
+        } else {
+          setPaymentError('Failed to update application. Please try again.');
+        }
+      } catch (error) {
+        setPaymentError('An error occurred while updating the application.');
+      } finally {
+        setIsProcessing(false);
+      }
+      return;
+    }
+
+    try {
+      // 1. Save form data to localStorage to submit to Formspree AFTER successful payment
+      localStorage.setItem('pendingAdmissionData', JSON.stringify(data));
+
+      // 2. Call Netlify Function to get payment URL
+      const response = await fetch('/.netlify/functions/createPayment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: data.studentName,
+          email: data.email || 'no-email@example.com', // Rupantor Pay requires email
+          phone: data.phone,
+          address: data.address,
+          classToApply: data.classToApply,
+          amount: admissionFee
+        }),
+      });
+
+      const responseText = await response.text();
+      let result;
+      
+      try {
+        result = responseText ? JSON.parse(responseText) : {};
+      } catch (e) {
+        console.error("Failed to parse payment response:", responseText);
+        throw new Error("Invalid response from payment server. If you are in the preview environment, Netlify functions may not be available.");
+      }
+
+      if (response.ok && result.payment_url) {
+        // 3. Redirect to Rupantor Pay
+        window.location.href = result.payment_url;
+      } else {
+        setPaymentError(result.error || 'Failed to initialize payment. Please try again.');
+        setIsProcessing(false);
+      }
+    } catch (error: any) {
+      console.error('Payment Error:', error);
+      setPaymentError(error.message || 'An error occurred while connecting to the payment gateway.');
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8 relative transition-colors duration-300">
@@ -71,7 +189,12 @@ export default function ApplyOnline() {
             <p className="text-blue-100">Fill out the form below to apply for the 2026 academic year.</p>
           </div>
           
-          <form onSubmit={handleSubmit} className="p-8 space-y-8">
+          <form onSubmit={handlePaymentSubmit} className="p-8 space-y-8">
+            {paymentError && (
+              <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl text-sm">
+                {paymentError}
+              </div>
+            )}
             {/* Personal Info */}
             <div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center border-b border-slate-100 dark:border-slate-800 pb-2">
@@ -229,10 +352,20 @@ export default function ApplyOnline() {
             )}
 
             <div className="pt-6">
-              <button type="submit" disabled={state.submitting} className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm shadow-blue-500/20 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed">
-                {state.submitting ? 'Submitting...' : 'Submit Application'}
+              {!existingApp && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-4 mb-6">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">Admission Fee:</span>
+                    <span className="text-xl font-bold text-blue-600 dark:text-blue-400">৳{admissionFee}</span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                    You will be redirected to a secure payment gateway to complete your application.
+                  </p>
+                </div>
+              )}
+              <button type="submit" disabled={isProcessing} className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm shadow-blue-500/20 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                {isProcessing ? 'Processing...' : existingApp ? 'Update Application' : `Proceed to Payment (৳${admissionFee})`}
               </button>
-              <ValidationError errors={state.errors} />
             </div>
           </form>
         </div>

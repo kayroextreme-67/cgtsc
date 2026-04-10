@@ -257,7 +257,19 @@ export default function CreateProfile() {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">I am a...</label>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <button
+                  type="button"
+                  onClick={() => { setRole('visitor'); setError(''); }}
+                  className={`p-3 rounded-xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${
+                    role === 'visitor'
+                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 text-slate-600 dark:text-slate-400'
+                  }`}
+                >
+                  <User className="w-6 h-6" />
+                  <span className="text-sm font-medium text-center">Visitor / Applicant</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => { setRole('student'); setError(''); }}
@@ -284,15 +296,15 @@ export default function CreateProfile() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setRole('visitor'); setError(''); }}
+                  onClick={() => { setRole('teacher'); setError(''); }}
                   className={`p-3 rounded-xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${
-                    role === 'visitor'
+                    role === 'teacher'
                       ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
                       : 'border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 text-slate-600 dark:text-slate-400'
                   }`}
                 >
-                  <User className="w-6 h-6" />
-                  <span className="text-sm font-medium">Visitor</span>
+                  <UserPlus className="w-6 h-6" />
+                  <span className="text-sm font-medium">Teacher</span>
                 </button>
               </div>
             </div>
