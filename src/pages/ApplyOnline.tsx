@@ -93,11 +93,13 @@ export default function ApplyOnline() {
     setIsProcessing(true);
     setPaymentError('');
 
+    // Capture all form data including custom fields
     const form = e.currentTarget;
     const formDataObj = new FormData(form);
     const data = Object.fromEntries(formDataObj.entries());
 
     if (existingApp) {
+      // Update existing application directly
       try {
         const success = await updateApplication(existingApp.id, {
           studentName: data.studentName as string,
@@ -129,8 +131,10 @@ export default function ApplyOnline() {
     }
 
     try {
+      // 1. Save form data to localStorage to submit to Formspree AFTER successful payment
       localStorage.setItem('pendingAdmissionData', JSON.stringify(data));
 
+      // 2. Call Netlify Function to get payment URL
       const response = await fetch('/.netlify/functions/createPayment', {
         method: 'POST',
         headers: {
@@ -138,7 +142,7 @@ export default function ApplyOnline() {
         },
         body: JSON.stringify({
           name: data.studentName,
-          email: data.email || 'no-email@example.com',
+          email: data.email || 'no-email@example.com', // Rupantor Pay requires email
           phone: data.phone,
           address: data.address,
           classToApply: data.classToApply,
@@ -157,6 +161,7 @@ export default function ApplyOnline() {
       }
 
       if (response.ok && result.payment_url) {
+        // 3. Redirect to Rupantor Pay
         window.location.href = result.payment_url;
       } else {
         setPaymentError(result.error || 'Failed to initialize payment. Please try again.');
@@ -190,7 +195,7 @@ export default function ApplyOnline() {
                 {paymentError}
               </div>
             )}
-            
+            {/* Personal Info */}
             <div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center border-b border-slate-100 dark:border-slate-800 pb-2">
                 <User className="w-5 h-5 mr-2 text-blue-500" /> Personal Information
@@ -230,6 +235,7 @@ export default function ApplyOnline() {
               </div>
             </div>
 
+            {/* Family Info */}
             <div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center border-b border-slate-100 dark:border-slate-800 pb-2">
                 <User className="w-5 h-5 mr-2 text-blue-500" /> Family Information
@@ -246,6 +252,7 @@ export default function ApplyOnline() {
               </div>
             </div>
 
+            {/* Contact Info */}
             <div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center border-b border-slate-100 dark:border-slate-800 pb-2">
                 <Phone className="w-5 h-5 mr-2 text-blue-500" /> Contact Information
@@ -266,6 +273,7 @@ export default function ApplyOnline() {
               </div>
             </div>
 
+            {/* Academic Info */}
             <div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center border-b border-slate-100 dark:border-slate-800 pb-2">
                 <BookOpen className="w-5 h-5 mr-2 text-blue-500" /> Academic Information
@@ -287,6 +295,7 @@ export default function ApplyOnline() {
               </div>
             </div>
 
+            {/* Custom Fields */}
             {content?.admissionFormFields && content.admissionFormFields.length > 0 && (
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center border-b border-slate-100 dark:border-slate-800 pb-2">
@@ -334,4 +343,33 @@ export default function ApplyOnline() {
                           type={field.type}
                           name={field.label}
                           className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="pt-6">
+              {!existingApp && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-4 mb-6">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">Admission Fee:</span>
+                    <span className="text-xl font-bold text-blue-600 dark:text-blue-400">৳{admissionFee}</span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                    You will be redirected to a secure payment gateway to complete your application.
+                  </p>
+                </div>
+              )}
+              <button type="submit" disabled={isProcessing} className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm shadow-blue-500/20 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                {isProcessing ? 'Processing...' : existingApp ? 'Update Application' : `Proceed to Secure Payment (৳${admissionFee})`}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}

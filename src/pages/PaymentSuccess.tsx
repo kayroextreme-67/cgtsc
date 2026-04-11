@@ -4,6 +4,7 @@ import { CheckCircle2, Download, Printer, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { createApplication } from '../lib/db';
 import { useAuth } from '../contexts/AuthContext';
+import jsPDF from 'jspdf';
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
@@ -12,8 +13,8 @@ export default function PaymentSuccess() {
   const [studentData, setStudentData] = useState<any>(null);
   const { user } = useAuth();
   
-  const transactionId = searchParams.get('transactionId');
-  const paymentAmount = searchParams.get('paymentAmount');
+  const transactionId = searchParams.get('transactionId') || searchParams.get('transaction_id');
+  const paymentAmount = searchParams.get('paymentAmount') || searchParams.get('amount');
   const status = searchParams.get('status');
 
   useEffect(() => {
@@ -94,6 +95,61 @@ export default function PaymentSuccess() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    
+    // Add Watermark
+    doc.setTextColor(230, 230, 230);
+    doc.setFontSize(80);
+    doc.text('PAID', 105, 150, { angle: 45, align: 'center' });
+
+    // Reset text color for content
+    doc.setTextColor(0, 0, 0);
+    
+    // Header
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CGTSC Admission Receipt', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Payment Successful', 105, 30, { align: 'center' });
+    
+    doc.line(20, 35, 190, 35); // Draw a line
+
+    // Transaction Details
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Transaction Details', 20, 50);
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Transaction ID: ${transactionId || 'N/A'}`, 20, 60);
+    doc.text(`Amount Paid: BDT ${paymentAmount || 'N/A'}`, 20, 70);
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 80);
+
+    // Applicant Details
+    if (studentData) {
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Applicant Details', 20, 100);
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Name: ${studentData.studentName || 'N/A'}`, 20, 110);
+      doc.text(`Phone: ${studentData.phone || 'N/A'}`, 20, 120);
+      doc.text(`Class Applied For: Class ${studentData.classToApply || 'N/A'}`, 20, 130);
+    }
+
+    // Footer
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text('This is a computer-generated receipt and does not require a signature.', 105, 280, { align: 'center' });
+
+    // Save the PDF
+    doc.save(`CGTSC_Receipt_${transactionId || 'Admission'}.pdf`);
   };
 
   if (status !== 'COMPLETED') {
@@ -181,7 +237,7 @@ export default function PaymentSuccess() {
                   <button onClick={handlePrint} className="flex-1 flex items-center justify-center py-3 px-4 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                     <Printer className="w-4 h-4 mr-2" /> Print Receipt
                   </button>
-                  <button onClick={handlePrint} className="flex-1 flex items-center justify-center py-3 px-4 border border-transparent rounded-xl text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                  <button onClick={handleDownloadPDF} className="flex-1 flex items-center justify-center py-3 px-4 border border-transparent rounded-xl text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors">
                     <Download className="w-4 h-4 mr-2" /> Save as PDF
                   </button>
                 </div>
