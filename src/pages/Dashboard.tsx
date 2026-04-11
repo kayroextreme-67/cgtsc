@@ -85,7 +85,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) {
       navigate('/login');
-    } else if (!user.role) {
+    } else if (!user.role || (user.role === 'visitor' && user.status === 'pending')) {
       navigate('/create-profile');
     } else if (user.status === 'pending') {
       navigate('/pending-approval');
@@ -98,7 +98,7 @@ export default function Dashboard() {
     }
   }, [user, navigate]);
 
-  if (!user || user.status !== 'approved' || user.role === 'admin') return null;
+  if (!user || (user.status && user.status !== 'approved') || user.role === 'admin') return null;
 
   if (loading) {
     return (

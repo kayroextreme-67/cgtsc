@@ -10,12 +10,14 @@ export default function PendingApproval() {
   useEffect(() => {
     if (!user) {
       navigate('/login');
-    } else if (user.status === 'approved') {
+    } else if (!user.role || (user.role === 'visitor' && user.status === 'pending')) {
+      navigate('/create-profile');
+    } else if (user.status === 'approved' || !user.status) {
       navigate('/dashboard');
     }
   }, [user, navigate]);
 
-  if (!user || user.status === 'approved') {
+  if (!user || user.status === 'approved' || !user.status || (user.role === 'visitor' && user.status === 'pending')) {
     return null;
   }
 
