@@ -21,8 +21,11 @@ export default function CloudinaryWidget({
   const widgetRef = useRef<any>(null);
 
   useEffect(() => {
-    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+    // Try VITE_ prefixed variables first, fallback to non-prefixed if they exist in the environment
+    // Note: non-prefixed variables might not be exposed by Vite unless explicitly configured,
+    // but we add this fallback just in case they are injected differently in the build process.
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || import.meta.env.CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || import.meta.env.CLOUDINARY_UPLOAD_PRESET;
 
     if (!cloudName || !uploadPreset) {
       console.warn('Cloudinary environment variables are not set.');
@@ -57,12 +60,12 @@ export default function CloudinaryWidget({
     if (widgetRef.current) {
       widgetRef.current.open();
     } else {
-      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-      const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || import.meta.env.CLOUDINARY_CLOUD_NAME;
+      const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || import.meta.env.CLOUDINARY_UPLOAD_PRESET;
       
       if (!cloudName || !uploadPreset) {
-        alert('Cloudinary environment variables are missing. Please ensure you have added VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET in your Netlify Environment Variables (the VITE_ prefix is required).');
-      } else if (!window.cloudinary) {
+        alert('Cloudinary environment variables are missing. Please ensure you have added VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET in your Netlify Environment Variables.');
+      } else if (!(window as any).cloudinary) {
         alert('Cloudinary script is still loading. Please try again in a few seconds.');
       } else {
         alert('Cloudinary widget failed to initialize. Please check your configuration.');
