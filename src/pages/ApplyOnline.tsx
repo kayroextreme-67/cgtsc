@@ -93,13 +93,11 @@ export default function ApplyOnline() {
     setIsProcessing(true);
     setPaymentError('');
 
-    // Capture all form data including custom fields
     const form = e.currentTarget;
     const formDataObj = new FormData(form);
     const data = Object.fromEntries(formDataObj.entries());
 
     if (existingApp) {
-      // Update existing application directly
       try {
         const success = await updateApplication(existingApp.id, {
           studentName: data.studentName as string,
@@ -131,10 +129,8 @@ export default function ApplyOnline() {
     }
 
     try {
-      // 1. Save form data to localStorage to submit to Formspree AFTER successful payment
       localStorage.setItem('pendingAdmissionData', JSON.stringify(data));
 
-      // 2. Call Netlify Function to get payment URL
       const response = await fetch('/.netlify/functions/createPayment', {
         method: 'POST',
         headers: {
@@ -142,7 +138,7 @@ export default function ApplyOnline() {
         },
         body: JSON.stringify({
           name: data.studentName,
-          email: data.email || 'no-email@example.com', // Rupantor Pay requires email
+          email: data.email || 'no-email@example.com',
           phone: data.phone,
           address: data.address,
           classToApply: data.classToApply,
@@ -161,7 +157,6 @@ export default function ApplyOnline() {
       }
 
       if (response.ok && result.payment_url) {
-        // 3. Redirect to Rupantor Pay
         window.location.href = result.payment_url;
       } else {
         setPaymentError(result.error || 'Failed to initialize payment. Please try again.');
@@ -195,7 +190,7 @@ export default function ApplyOnline() {
                 {paymentError}
               </div>
             )}
-            {/* Personal Info */}
+            
             <div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center border-b border-slate-100 dark:border-slate-800 pb-2">
                 <User className="w-5 h-5 mr-2 text-blue-500" /> Personal Information
@@ -235,7 +230,6 @@ export default function ApplyOnline() {
               </div>
             </div>
 
-            {/* Family Info */}
             <div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center border-b border-slate-100 dark:border-slate-800 pb-2">
                 <User className="w-5 h-5 mr-2 text-blue-500" /> Family Information
@@ -252,7 +246,6 @@ export default function ApplyOnline() {
               </div>
             </div>
 
-            {/* Contact Info */}
             <div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center border-b border-slate-100 dark:border-slate-800 pb-2">
                 <Phone className="w-5 h-5 mr-2 text-blue-500" /> Contact Information
@@ -273,7 +266,6 @@ export default function ApplyOnline() {
               </div>
             </div>
 
-            {/* Academic Info */}
             <div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center border-b border-slate-100 dark:border-slate-800 pb-2">
                 <BookOpen className="w-5 h-5 mr-2 text-blue-500" /> Academic Information
@@ -295,7 +287,6 @@ export default function ApplyOnline() {
               </div>
             </div>
 
-            {/* Custom Fields */}
             {content?.admissionFormFields && content.admissionFormFields.length > 0 && (
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center border-b border-slate-100 dark:border-slate-800 pb-2">
@@ -337,4 +328,10 @@ export default function ApplyOnline() {
                           />
                           <span className="ml-3 text-sm text-slate-700 dark:text-slate-300">Yes</span>
                         </div>
-          
+                      ) : (
+                        <input
+                          required={field.required}
+                          type={field.type}
+                          name={field.label}
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                
