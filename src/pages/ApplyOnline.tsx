@@ -364,7 +364,7 @@ export default function ApplyOnline() {
                 </div>
               )}
               <button type="submit" disabled={isProcessing} className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm shadow-blue-500/20 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed">
-                {isProcessing ? 'Processing...' : existingApp ? 'Update Application' : `Proceed to Payment (৳${admissionFee})`}
+                {isProcessing ? 'Processing...' : existingApp ? 'Update Application' : `Proceed to Secure Payment (৳${admissionFee})`}
               </button>
             </div>
           </form>
