@@ -15,8 +15,16 @@ exports.handler = async (event, context) => {
     // 🔒 SECURE CONFIGURATION (Never exposed to frontend)
     // =====================================================================
     const RUPANTOR_API_URL = "https://payment.rupantorpay.com/api/payment/checkout"; 
-    const API_KEY = process.env.RUPANTOR_API_KEY || "iL0lFlwFPatsCs9gDh9lGBPvm7wE"; // Fallback for local testing
+    const API_KEY = process.env.RUPANTOR_API_KEY; // Must be set in Netlify Environment Variables
     const DOMAIN = process.env.FRONTEND_DOMAIN || "cgtsc.netlify.app"; // Your domain for X-CLIENT header
+    
+    if (!API_KEY) {
+      console.error("Missing RUPANTOR_API_KEY environment variable");
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Payment gateway configuration missing on server." })
+      };
+    }
     
     // Use the amount from the frontend, fallback to 500 if not provided
     const ADMISSION_FEE = data.amount || "500"; 
