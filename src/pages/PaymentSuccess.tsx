@@ -196,16 +196,18 @@ export default function PaymentSuccess() {
     doc.text('This is a computer-generated receipt and does not require a signature.', 105, 280, { align: 'center' });
 
     // Add Signature
-    const signatureUrl = import.meta.env.VITE_SIGNATURE_URL || 'https://res.cloudinary.com/detobyfb9/image/upload/v1775904967/20260411_045348_jli2zt.jpg';
+    const signatureUrl = import.meta.env.VITE_SIGNATURE_URL;
     
-    try {
-      // Add the signature image at the bottom right
-      doc.addImage(signatureUrl, 'JPEG', 140, 240, 50, 20);
-      doc.setFontSize(10);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Authorized Signature', 165, 265, { align: 'center' });
-    } catch (e) {
-      console.error('Could not load signature image for PDF', e);
+    if (signatureUrl) {
+      try {
+        // Add the signature image at the bottom right
+        doc.addImage(signatureUrl, 'JPEG', 140, 240, 50, 20);
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text('Authorized Signature', 165, 265, { align: 'center' });
+      } catch (e) {
+        console.error('Could not load signature image for PDF', e);
+      }
     }
 
     // Save the PDF

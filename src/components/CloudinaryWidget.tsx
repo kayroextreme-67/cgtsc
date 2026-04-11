@@ -57,7 +57,16 @@ export default function CloudinaryWidget({
     if (widgetRef.current) {
       widgetRef.current.open();
     } else {
-      alert('Cloudinary widget is not initialized. Please check your environment variables.');
+      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+      const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+      
+      if (!cloudName || !uploadPreset) {
+        alert('Cloudinary environment variables are missing. Please ensure you have added VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET in your Netlify Environment Variables (the VITE_ prefix is required).');
+      } else if (!window.cloudinary) {
+        alert('Cloudinary script is still loading. Please try again in a few seconds.');
+      } else {
+        alert('Cloudinary widget failed to initialize. Please check your configuration.');
+      }
     }
   };
 
