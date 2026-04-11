@@ -3,7 +3,7 @@
   publish = "dist"
 
 [build.environment]
-  SECRETS_SCAN_OMIT_KEYS = "FRONTEND_DOMAIN,FORMSPREE_ENDPOINT"
+  SECRETS_SCAN_OMIT_KEYS = "FRONTEND_DOMAIN,FORMSPREE_ENDPOINT,RUPANTOR_API_KEY"
 
 [dev]
   command = "npm run dev"
