@@ -13,16 +13,18 @@ export default function PaymentSuccess() {
   const [studentData, setStudentData] = useState<any>(null);
   const { user } = useAuth();
   
-  const transactionId = searchParams.get('transactionId') || searchParams.get('transaction_id');
+  const transactionId = searchParams.get('transactionId') || searchParams.get('transaction_id') || searchParams.get('trx_id');
   const paymentAmount = searchParams.get('paymentAmount') || searchParams.get('amount');
-  const status = searchParams.get('status');
+  const status = searchParams.get('status')?.toLowerCase();
+
+  const isSuccess = status === 'completed' || status === 'success' || status === 'successful' || status === 'paid';
 
   useEffect(() => {
     const submitToFormspree = async () => {
       // 1. Get saved form data
       const savedData = localStorage.getItem('pendingAdmissionData');
       
-      if (savedData && status === 'COMPLETED') {
+      if (savedData && isSuccess) {
         try {
           const parsedData = JSON.parse(savedData);
           setStudentData(parsedData);
@@ -85,7 +87,7 @@ export default function PaymentSuccess() {
         } catch (error) {
           console.error('Error submitting form:', error);
         }
-      } else if (!savedData && status === 'COMPLETED') {
+      } else if (!savedData && isSuccess) {
         // If no saved data but status is completed, it might be a page refresh
         // We still show success, but we can't submit to Formspree again
         setSubmitSuccess(true);
@@ -156,7 +158,7 @@ export default function PaymentSuccess() {
     doc.save(`CGTSC_Receipt_${transactionId || 'Admission'}.pdf`);
   };
 
-  if (status !== 'COMPLETED') {
+  if (!isSuccess) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
