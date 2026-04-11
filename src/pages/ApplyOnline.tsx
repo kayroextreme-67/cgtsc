@@ -57,7 +57,7 @@ export default function ApplyOnline() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState('');
 
-  const admissionFee = content?.admissionFee || "500";
+  const admissionFee = content?.admissionFee || "10";
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

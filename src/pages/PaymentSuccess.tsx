@@ -38,6 +38,10 @@ export default function PaymentSuccess() {
 
           // 2. Submit to Formspree
           const formspreeEndpoint = import.meta.env.VITE_FORMSPREE_ENDPOINT || import.meta.env.FORMSPREE_ENDPOINT;
+          if (!formspreeEndpoint) {
+            console.error('Formspree endpoint not configured');
+            throw new Error('Formspree endpoint not configured');
+          }
           const response = await fetch(formspreeEndpoint, {
             method: 'POST',
             headers: {
