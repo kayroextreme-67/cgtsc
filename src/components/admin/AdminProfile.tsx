@@ -1,20 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { updateUser } from '../../lib/db';
-import { storage } from '../../lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '../../contexts/ToastContext';
-import { User, Camera, Save, ShieldCheck } from 'lucide-react';
+import { User, Save, ShieldCheck } from 'lucide-react';
+import CloudinaryWidget from '../CloudinaryWidget';
 
 export default function AdminProfile() {
   const { user, refreshUser } = useAuth();
   const toast = useToast();
   
   const [editForm, setEditForm] = useState({ name: '', phone: '' });
-  const [file, setFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -23,33 +20,14 @@ export default function AdminProfile() {
     }
   }, [user]);
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(selectedFile);
-    }
-  };
-
   const handleSaveProfile = async () => {
     if (!user) return;
     setSavingProfile(true);
     try {
-      let photoUrl = user.photoUrl;
-      if (file) {
-        const storageRef = ref(storage, `profiles/${user.id}_${Date.now()}`);
-        const snapshot = await uploadBytes(storageRef, file);
-        photoUrl = await getDownloadURL(snapshot.ref);
-      }
-
       await updateUser(user.id, {
         name: editForm.name,
         phone: editForm.phone,
-        photoUrl
+        photoUrl: photoPreview || user.photoUrl
       });
       
       await refreshUser();
@@ -87,20 +65,14 @@ export default function AdminProfile() {
                   <User className="h-12 w-12 text-slate-400" />
                 )}
               </div>
-              <button 
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-2 right-2 p-2.5 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors"
-                title="Change Photo"
-              >
-                <Camera className="w-4 h-4" />
-              </button>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handlePhotoUpload} 
-                accept="image/*" 
-                className="hidden" 
-              />
+              <div className="absolute -bottom-2 -right-2">
+                <CloudinaryWidget 
+                  onUploadSuccess={(url) => setPhotoPreview(url)} 
+                  buttonText=""
+                  resourceType="image"
+                  className="p-2.5 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors w-10 h-10 flex items-center justify-center"
+                />
+              </div>
             </div>
             <div className="text-center sm:text-left">
               <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{user.name}</h3>

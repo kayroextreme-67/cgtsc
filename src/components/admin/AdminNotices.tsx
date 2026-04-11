@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { getNotices, createNotice, updateNotice, deleteNotice, Notice } from '../../lib/db';
-import { storage } from '../../lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Plus, Edit, Trash2, Save, X, Upload, Link as LinkIcon, FileText } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 import ConfirmModal from '../ConfirmModal';
+import CloudinaryWidget from '../CloudinaryWidget';
 
 export default function AdminNotices() {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [currentNotice, setCurrentNotice] = useState<Partial<Notice>>({});
-  const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const toast = useToast();
@@ -34,36 +32,11 @@ export default function AdminNotices() {
     }
 
     setUploading(true);
-    let fileUrl = currentNotice.fileUrl;
-
-    if (file) {
-      try {
-        const storageRef = ref(storage, `notices/${Date.now()}_${file.name}`);
-        
-        // Add a timeout to the upload process (e.g., 15 seconds)
-        const uploadPromise = uploadBytes(storageRef, file);
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Upload timeout. Please check if Firebase Storage is enabled in your Firebase Console.")), 15000)
-        );
-        
-        const snapshot = await Promise.race([uploadPromise, timeoutPromise]) as any;
-        fileUrl = await getDownloadURL(snapshot.ref);
-      } catch (error: any) {
-        console.error("Error uploading file:", error);
-        toast.error(error.message || "Failed to upload file. Make sure Firebase Storage is enabled.");
-        setUploading(false);
-        return;
-      }
-    }
 
     const noticeData: any = {
       ...currentNotice,
       type: currentNotice.type || 'general'
     };
-    
-    if (fileUrl) {
-      noticeData.fileUrl = fileUrl;
-    }
 
     // Remove any undefined values to prevent Firestore errors
     Object.keys(noticeData).forEach(key => {
@@ -96,7 +69,6 @@ export default function AdminNotices() {
     
     setIsEditing(false);
     setCurrentNotice({});
-    setFile(null);
     setUploading(false);
   };
 
@@ -136,7 +108,7 @@ export default function AdminNotices() {
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 space-y-4">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{currentNotice.id ? 'Edit Notice' : 'New Notice'}</h3>
-            <button onClick={() => { setIsEditing(false); setFile(null); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+            <button onClick={() => { setIsEditing(false); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
               <X className="w-6 h-6" />
             </button>
           </div>
@@ -177,30 +149,20 @@ export default function AdminNotices() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Upload PDF (Optional)</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Upload PDF</label>
               <div className="flex items-center gap-2">
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
-                  className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                <CloudinaryWidget 
+                  onUploadSuccess={(url) => setCurrentNotice({ ...currentNotice, fileUrl: url })} 
+                  buttonText="Upload PDF"
+                  resourceType="auto"
+                  className="w-full md:w-auto"
                 />
               </div>
-              {currentNotice.fileUrl && !file && (
-                <p className="text-xs text-blue-600 mt-1">Current file uploaded. Selecting a new one will replace it.</p>
+              {currentNotice.fileUrl && (
+                <p className="text-xs text-blue-600 mt-1">Current file uploaded: <a href={currentNotice.fileUrl} target="_blank" rel="noreferrer" className="underline">View</a></p>
               )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Or External Link (Optional)</label>
-              <input
-                type="url"
-                value={currentNotice.linkUrl || ''}
-                onChange={(e) => setCurrentNotice({ ...currentNotice, linkUrl: e.target.value })}
-                placeholder="https://..."
-                className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-              />
             </div>
           </div>
 

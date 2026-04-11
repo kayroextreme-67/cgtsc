@@ -4,10 +4,9 @@ import { User, Bell, FileText, Award, LogOut, BookOpen, Calendar, ChevronRight, 
 import { useAuth } from '../contexts/AuthContext';
 import ScrollReveal from '../components/ScrollReveal';
 import { updateUser, getExams, ExamResult, getNotices, Notice, getUserApplication, AdmissionApplication } from '../lib/db';
-import { storage } from '../lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '../contexts/ToastContext';
 import ResultCard from '../components/ResultCard';
+import CloudinaryWidget from '../components/CloudinaryWidget';
 
 export default function Dashboard() {
   const { user, logout, refreshUser } = useAuth();
@@ -16,10 +15,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editForm, setEditForm] = useState({ name: '', phone: '', photoUrl: '' });
-  const [file, setFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [latestResult, setLatestResult] = useState<any>(null);
   const [recentNotices, setRecentNotices] = useState<Notice[]>([]);
   const [userApplication, setUserApplication] = useState<AdmissionApplication | null>(null);
@@ -112,34 +109,11 @@ export default function Dashboard() {
   const isParent = user.role === 'parent';
   const isVisitor = user.role === 'visitor';
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(selectedFile);
-    }
-  };
-
   const handleSaveProfile = async () => {
     if (!user) return;
     setSavingProfile(true);
     try {
       let photoUrl = editForm.photoUrl || user.photoUrl;
-      if (file) {
-        const storageRef = ref(storage, `profiles/${user.id}_${Date.now()}`);
-        
-        const uploadPromise = uploadBytes(storageRef, file);
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Upload timeout. Firebase Storage might not be enabled.")), 15000)
-        );
-        
-        const snapshot = await Promise.race([uploadPromise, timeoutPromise]) as any;
-        photoUrl = await getDownloadURL(snapshot.ref);
-      }
 
       await updateUser(user.id, {
         name: editForm.name,
@@ -429,39 +403,20 @@ export default function Dashboard() {
                         <User className="h-10 w-10 text-slate-400" />
                       )}
                     </div>
-                    <button 
-                      onClick={() => fileInputRef.current?.click()}
-                      className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors"
-                      title="Upload Photo"
-                    >
-                      <Camera className="w-4 h-4" />
-                    </button>
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      onChange={handlePhotoUpload} 
-                      accept="image/*" 
-                      className="hidden" 
-                    />
-                  </div>
-                  <div className="flex-1 w-full space-y-2 mt-2 sm:mt-0">
-                    <div className="flex items-center gap-2">
-                      <div className="h-px bg-slate-200 dark:bg-slate-700 flex-1"></div>
-                      <span className="text-xs font-medium text-slate-400 uppercase">OR PASTE URL</span>
-                      <div className="h-px bg-slate-200 dark:bg-slate-700 flex-1"></div>
+                    <div className="absolute -bottom-2 -right-2">
+                      <CloudinaryWidget 
+                        onUploadSuccess={(url) => {
+                          setPhotoPreview(url);
+                          setEditForm({ ...editForm, photoUrl: url });
+                        }} 
+                        buttonText=""
+                        resourceType="image"
+                        className="p-2 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors w-8 h-8 flex items-center justify-center"
+                      />
                     </div>
-                    <input
-                      type="url"
-                      value={editForm.photoUrl}
-                      onChange={(e) => {
-                        setEditForm({ ...editForm, photoUrl: e.target.value });
-                        setPhotoPreview(e.target.value);
-                        setFile(null);
-                      }}
-                      placeholder="e.g., https://imgur.com/..."
-                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 text-sm"
-                    />
-                    <p className="text-xs text-slate-500 dark:text-slate-400 text-center sm:text-left">Upload an image or paste a direct image link.</p>
+                  </div>
+                  <div className="flex-1 w-full space-y-2 mt-2 sm:mt-0 flex items-center text-sm text-slate-500 dark:text-slate-400">
+                    <p>Upload a new profile photo using the camera icon.</p>
                   </div>
                 </div>
               </div>

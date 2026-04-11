@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { getTeachers, createTeacher, updateTeacher, deleteTeacher, Teacher } from '../../lib/db';
-import { storage } from '../../lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Plus, Edit, Trash2, Save, X, Image as ImageIcon, Phone, Mail } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 import ConfirmModal from '../ConfirmModal';
+import CloudinaryWidget from '../CloudinaryWidget';
 
 export default function AdminTeachers() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [currentTeacher, setCurrentTeacher] = useState<Partial<Teacher>>({});
-  const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -28,18 +26,6 @@ export default function AdminTeachers() {
     setLoading(false);
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(selectedFile);
-    }
-  };
-
   const handleSave = async () => {
     if (!currentTeacher.name || !currentTeacher.designation) {
       toast.error("Name and Designation are required.");
@@ -47,34 +33,10 @@ export default function AdminTeachers() {
     }
 
     setUploading(true);
-    let photoUrl = currentTeacher.photoUrl;
-
-    if (file) {
-      try {
-        const storageRef = ref(storage, `teachers/${Date.now()}_${file.name}`);
-        
-        const uploadPromise = uploadBytes(storageRef, file);
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Upload timeout. Please check if Firebase Storage is enabled in your Firebase Console.")), 15000)
-        );
-        
-        const snapshot = await Promise.race([uploadPromise, timeoutPromise]) as any;
-        photoUrl = await getDownloadURL(snapshot.ref);
-      } catch (error: any) {
-        console.error("Error uploading photo:", error);
-        toast.error(error.message || "Failed to upload photo. Make sure Firebase Storage is enabled.");
-        setUploading(false);
-        return;
-      }
-    }
 
     const teacherData: any = {
       ...currentTeacher
     };
-    
-    if (photoUrl) {
-      teacherData.photoUrl = photoUrl;
-    }
 
     // Remove any undefined values to prevent Firestore errors
     Object.keys(teacherData).forEach(key => {
@@ -107,7 +69,6 @@ export default function AdminTeachers() {
     
     setIsEditing(false);
     setCurrentTeacher({});
-    setFile(null);
     setPhotoPreview(null);
     setUploading(false);
   };
@@ -149,7 +110,7 @@ export default function AdminTeachers() {
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 space-y-4">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{currentTeacher.id ? 'Edit Teacher' : 'New Teacher'}</h3>
-            <button onClick={() => { setIsEditing(false); setFile(null); setPhotoPreview(null); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+            <button onClick={() => { setIsEditing(false); setPhotoPreview(null); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
               <X className="w-6 h-6" />
             </button>
           </div>
@@ -208,38 +169,16 @@ export default function AdminTeachers() {
                 )}
               </div>
               <div className="flex-1 w-full space-y-3">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="block w-full text-sm text-slate-500 dark:text-slate-400
-                    file:mr-4 file:py-2 file:px-4
-                    file:rounded-xl file:border-0
-                    file:text-sm file:font-semibold
-                    file:bg-blue-50 file:text-blue-700
-                    dark:file:bg-blue-900/30 dark:file:text-blue-400
-                    hover:file:bg-blue-100 dark:hover:file:bg-blue-900/50
-                    cursor-pointer"
+                <CloudinaryWidget 
+                  onUploadSuccess={(url) => {
+                    setCurrentTeacher({ ...currentTeacher, photoUrl: url });
+                    setPhotoPreview(url);
+                  }} 
+                  buttonText="Upload Photo"
+                  resourceType="image"
+                  className="w-full"
                 />
-                
-                <div className="flex items-center gap-2">
-                  <div className="h-px bg-slate-200 dark:bg-slate-700 flex-1"></div>
-                  <span className="text-xs font-medium text-slate-400 uppercase">OR PASTE URL</span>
-                  <div className="h-px bg-slate-200 dark:bg-slate-700 flex-1"></div>
-                </div>
-                
-                <input
-                  type="url"
-                  value={currentTeacher.photoUrl || ''}
-                  onChange={(e) => {
-                    setCurrentTeacher({ ...currentTeacher, photoUrl: e.target.value });
-                    setPhotoPreview(e.target.value);
-                    setFile(null);
-                  }}
-                  placeholder="e.g., https://imgur.com/..."
-                  className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 text-sm"
-                />
-                <p className="text-xs text-slate-500 dark:text-slate-400">Upload an image or paste a direct image link.</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Upload a profile photo using Cloudinary.</p>
               </div>
             </div>
           </div>

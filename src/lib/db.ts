@@ -113,6 +113,9 @@ export interface AdmissionApplication {
   address: string;
   previousSchool: string;
   classToApply: string;
+  birthCertificate?: string;
+  studentPhotoUrl?: string;
+  birthCertificateUrl?: string;
   transactionId: string;
   paymentStatus: string;
   amountPaid: string;

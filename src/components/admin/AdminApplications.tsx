@@ -41,6 +41,20 @@ export default function AdminApplications() {
         phone: viewingApp.phone
       });
 
+      // Send SMS
+      try {
+        await fetch('/.netlify/functions/sendSms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone: viewingApp.phone,
+            message: `Congratulations ${viewingApp.studentName}! Your admission application for Class ${viewingApp.classToApply} has been approved. Your Student ID is ${approveForm.studentId}. Welcome to CGTSC!`
+          })
+        });
+      } catch (smsError) {
+        console.error('Failed to send SMS:', smsError);
+      }
+
       toast.success('Application approved and user upgraded to student.');
       setViewingApp(null);
       await loadApplications();
@@ -52,6 +66,25 @@ export default function AdminApplications() {
   const handleReject = async (id: string) => {
     try {
       await updateApplication(id, { status: 'rejected' });
+      
+      // Find the application to get the phone number
+      const app = applications.find(a => a.id === id);
+      if (app) {
+        // Send SMS
+        try {
+          await fetch('/.netlify/functions/sendSms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              phone: app.phone,
+              message: `Dear ${app.studentName}, we regret to inform you that your admission application for Class ${app.classToApply} has been rejected. Please contact CGTSC administration for details.`
+            })
+          });
+        } catch (smsError) {
+          console.error('Failed to send SMS:', smsError);
+        }
+      }
+
       toast.success('Application rejected.');
       await loadApplications();
     } catch (error) {
@@ -183,6 +216,7 @@ export default function AdminApplications() {
                   <p><span className="text-slate-500">Blood Group:</span> <span className="font-medium text-slate-900 dark:text-white">{viewingApp.bloodGroup}</span></p>
                   <p><span className="text-slate-500">Previous School:</span> <span className="font-medium text-slate-900 dark:text-white">{viewingApp.previousSchool}</span></p>
                   <p><span className="text-slate-500">Class Applied:</span> <span className="font-medium text-slate-900 dark:text-white">Class {viewingApp.classToApply}</span></p>
+                  {viewingApp.birthCertificate && <p><span className="text-slate-500">Birth Certificate No:</span> <span className="font-medium text-slate-900 dark:text-white">{viewingApp.birthCertificate}</span></p>}
                 </div>
               </div>
               <div>
@@ -196,6 +230,30 @@ export default function AdminApplications() {
                 </div>
               </div>
             </div>
+
+            {(viewingApp.studentPhotoUrl || viewingApp.birthCertificateUrl) && (
+              <div className="mb-8">
+                <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Uploaded Documents</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  {viewingApp.studentPhotoUrl && (
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Student Photo</p>
+                      <a href={viewingApp.studentPhotoUrl} target="_blank" rel="noopener noreferrer">
+                        <img src={viewingApp.studentPhotoUrl} alt="Student" className="w-24 h-24 object-cover rounded-xl border border-slate-200 dark:border-slate-700" />
+                      </a>
+                    </div>
+                  )}
+                  {viewingApp.birthCertificateUrl && (
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Birth Certificate</p>
+                      <a href={viewingApp.birthCertificateUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 dark:border-slate-700 text-sm font-medium rounded-xl text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                        View Document
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {viewingApp.status === 'pending' && (
               <div className="border-t border-slate-200 dark:border-slate-800 pt-6">

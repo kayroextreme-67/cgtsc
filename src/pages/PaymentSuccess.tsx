@@ -35,7 +35,11 @@ export default function PaymentSuccess() {
       if (savedData && isSuccess) {
         try {
           const parsedData = JSON.parse(savedData);
-          setStudentData(parsedData);
+          
+          const paymentTimestamp = new Date().toLocaleString('en-US', { 
+            day: 'numeric', month: 'short', year: 'numeric', 
+            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true 
+          });
           
           // Add payment info to the form data
           const finalData = {
@@ -43,8 +47,11 @@ export default function PaymentSuccess() {
             paymentStatus: 'COMPLETED',
             transactionId: transactionId,
             amountPaid: paymentAmount,
-            paymentDate: new Date().toLocaleString()
+            paymentTime: paymentTimestamp,
+            paymentDate: paymentTimestamp
           };
+          
+          setStudentData(finalData);
 
           // 2. Submit to Formspree
           // Using the direct URL since Formspree endpoints are meant to be public 
@@ -59,6 +66,20 @@ export default function PaymentSuccess() {
             },
             body: JSON.stringify(finalData)
           });
+
+          // 2.5 Send SMS via Rupantor
+          try {
+            await fetch('/.netlify/functions/sendSms', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                phone: finalData.phone,
+                message: `Dear ${finalData.studentName}, your admission application for Class ${finalData.classToApply} has been received. TrxID: ${transactionId}. Thank you, CGTSC.`
+              })
+            });
+          } catch (smsError) {
+            console.error('Failed to send SMS:', smsError);
+          }
 
           // 3. Save to Firebase if user is logged in
           if (user) {
@@ -80,7 +101,10 @@ export default function PaymentSuccess() {
               paymentStatus: finalData.paymentStatus || '',
               amountPaid: finalData.amountPaid || '',
               paymentDate: finalData.paymentDate || '',
-              status: 'pending'
+              status: 'pending',
+              birthCertificate: finalData.birthCertificate || '',
+              studentPhotoUrl: finalData.studentPhotoUrl || '',
+              birthCertificateUrl: finalData.birthCertificateUrl || ''
             });
           }
 
@@ -141,7 +165,7 @@ export default function PaymentSuccess() {
     doc.setFont('helvetica', 'normal');
     doc.text(`Transaction ID: ${transactionId || 'N/A'}`, 20, 60);
     doc.text(`Amount Paid: BDT ${paymentAmount || 'N/A'}`, 20, 70);
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 80);
+    doc.text(`Time: ${studentData?.paymentTime || new Date().toLocaleString()}`, 20, 80);
 
     // Applicant Details
     if (studentData) {
@@ -152,14 +176,37 @@ export default function PaymentSuccess() {
       doc.setFontSize(12);
       doc.setFont('helvetica', 'normal');
       doc.text(`Name: ${studentData.studentName || 'N/A'}`, 20, 110);
-      doc.text(`Phone: ${studentData.phone || 'N/A'}`, 20, 120);
-      doc.text(`Class Applied For: Class ${studentData.classToApply || 'N/A'}`, 20, 130);
+      doc.text(`Class/Trade: Class ${studentData.classToApply || 'N/A'}`, 20, 120);
+      doc.text(`Birth Certificate No: ${studentData.birthCertificate || 'N/A'}`, 20, 130);
+      doc.text(`Phone: ${studentData.phone || 'N/A'}`, 20, 140);
+
+      // Add Student Photo if available
+      if (studentData.studentPhotoUrl) {
+        try {
+          doc.addImage(studentData.studentPhotoUrl, 'JPEG', 150, 100, 40, 40);
+        } catch (e) {
+          console.error('Could not load student photo for PDF', e);
+        }
+      }
     }
 
     // Footer
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
     doc.text('This is a computer-generated receipt and does not require a signature.', 105, 280, { align: 'center' });
+
+    // Add Signature
+    const signatureUrl = import.meta.env.VITE_SIGNATURE_URL || 'https://res.cloudinary.com/detobyfb9/image/upload/v1775904967/20260411_045348_jli2zt.jpg';
+    
+    try {
+      // Add the signature image at the bottom right
+      doc.addImage(signatureUrl, 'JPEG', 140, 240, 50, 20);
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Authorized Signature', 165, 265, { align: 'center' });
+    } catch (e) {
+      console.error('Could not load signature image for PDF', e);
+    }
 
     // Save the PDF
     doc.save(`CGTSC_Receipt_${transactionId || 'Admission'}.pdf`);
@@ -218,23 +265,33 @@ export default function PaymentSuccess() {
                     <div className="text-slate-500 dark:text-slate-400">Amount Paid:</div>
                     <div className="font-medium text-slate-900 dark:text-white text-right">৳{paymentAmount}</div>
                     
-                    <div className="text-slate-500 dark:text-slate-400">Date:</div>
-                    <div className="font-medium text-slate-900 dark:text-white text-right">{new Date().toLocaleDateString()}</div>
+                    <div className="text-slate-500 dark:text-slate-400">Time:</div>
+                    <div className="font-medium text-slate-900 dark:text-white text-right">{studentData?.paymentTime || new Date().toLocaleString()}</div>
                   </div>
                 </div>
 
                 {studentData && (
                   <div className="border-b border-slate-200 dark:border-slate-700 pb-6 mb-6">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Applicant Details</h3>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="text-slate-500 dark:text-slate-400">Name:</div>
-                      <div className="font-medium text-slate-900 dark:text-white text-right">{studentData.studentName}</div>
-                      
-                      <div className="text-slate-500 dark:text-slate-400">Phone:</div>
-                      <div className="font-medium text-slate-900 dark:text-white text-right">{studentData.phone}</div>
-                      
-                      <div className="text-slate-500 dark:text-slate-400">Class:</div>
-                      <div className="font-medium text-slate-900 dark:text-white text-right">Class {studentData.classToApply}</div>
+                    <div className="flex flex-col md:flex-row gap-6 items-start">
+                      {studentData.studentPhotoUrl && (
+                        <div className="shrink-0 mx-auto md:mx-0">
+                          <img src={studentData.studentPhotoUrl} alt="Student" className="w-24 h-24 object-cover rounded-xl border border-slate-200 dark:border-slate-700" />
+                        </div>
+                      )}
+                      <div className="flex-1 grid grid-cols-2 gap-4 text-sm w-full">
+                        <div className="text-slate-500 dark:text-slate-400">Name:</div>
+                        <div className="font-medium text-slate-900 dark:text-white text-right">{studentData.studentName}</div>
+                        
+                        <div className="text-slate-500 dark:text-slate-400">Phone:</div>
+                        <div className="font-medium text-slate-900 dark:text-white text-right">{studentData.phone}</div>
+                        
+                        <div className="text-slate-500 dark:text-slate-400">Class/Trade:</div>
+                        <div className="font-medium text-slate-900 dark:text-white text-right">Class {studentData.classToApply}</div>
+                        
+                        <div className="text-slate-500 dark:text-slate-400">Birth Certificate No:</div>
+                        <div className="font-medium text-slate-900 dark:text-white text-right">{studentData.birthCertificate || 'N/A'}</div>
+                      </div>
                     </div>
                   </div>
                 )}

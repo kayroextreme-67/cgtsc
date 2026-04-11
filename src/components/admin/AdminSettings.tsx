@@ -3,6 +3,7 @@ import { getSiteContent, updateSiteContent, SiteContent } from '../../lib/db';
 import { Save, CheckCircle2, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useSiteContent } from '../../contexts/SiteContentContext';
+import CloudinaryWidget from '../CloudinaryWidget';
 
 export default function AdminSettings() {
   const { refreshContent } = useSiteContent();
@@ -25,19 +26,6 @@ export default function AdminSettings() {
   const handleChange = (key: keyof SiteContent, value: string) => {
     if (settings) {
       setSettings({ ...settings, [key]: value });
-    }
-  };
-
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setLogoPreview(base64String);
-        handleChange('logoUrl', base64String);
-      };
-      reader.readAsDataURL(file);
     }
   };
 
@@ -151,18 +139,14 @@ export default function AdminSettings() {
             </div>
             <div className="flex-1">
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Upload New Logo</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleLogoUpload}
-                className="block w-full text-sm text-slate-500 dark:text-slate-400
-                  file:mr-4 file:py-2 file:px-4
-                  file:rounded-xl file:border-0
-                  file:text-sm file:font-semibold
-                  file:bg-blue-50 file:text-blue-700
-                  dark:file:bg-blue-900/30 dark:file:text-blue-400
-                  hover:file:bg-blue-100 dark:hover:file:bg-blue-900/50
-                  cursor-pointer"
+              <CloudinaryWidget 
+                onUploadSuccess={(url) => {
+                  setLogoPreview(url);
+                  handleChange('logoUrl', url);
+                }} 
+                buttonText="Upload Logo"
+                resourceType="image"
+                className="w-full sm:w-auto"
               />
               <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Recommended size: 200x200px. Max size: 2MB.</p>
             </div>

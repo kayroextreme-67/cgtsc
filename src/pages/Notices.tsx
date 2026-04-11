@@ -24,6 +24,13 @@ export default function Notices() {
     return matchesSearch && matchesCategory;
   });
 
+  const getDownloadUrl = (url: string) => {
+    if (url.includes('cloudinary.com') && !url.includes('fl_attachment')) {
+      return url.replace('/upload/', '/upload/fl_attachment/');
+    }
+    return url;
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 pb-20">
       {/* Page Header */}
@@ -105,9 +112,14 @@ export default function Notices() {
                     
                     <div className="flex sm:flex-col gap-3 shrink-0">
                       {notice.fileUrl && (
-                        <a href={notice.fileUrl} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                          <Download className="w-4 h-4 mr-2" /> Download PDF
-                        </a>
+                        <>
+                          <a href={notice.fileUrl} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-slate-200 dark:border-slate-700 text-sm font-medium rounded-xl text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                            <FileText className="w-4 h-4 mr-2" /> View PDF
+                          </a>
+                          <a href={getDownloadUrl(notice.fileUrl)} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                            <Download className="w-4 h-4 mr-2" /> Download
+                          </a>
+                        </>
                       )}
                       {notice.linkUrl && (
                         <a href={notice.linkUrl} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-slate-200 dark:border-slate-700 text-sm font-medium rounded-xl text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">

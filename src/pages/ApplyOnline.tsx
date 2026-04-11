@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, User, Mail, Phone, BookOpen, PlusCircle, Lock } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, User, Mail, Phone, BookOpen, PlusCircle, Lock, FileText, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useSiteContent } from '../contexts/SiteContentContext';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserApplication, updateApplication, AdmissionApplication } from '../lib/db';
 import { useToast } from '../contexts/ToastContext';
+import CloudinaryWidget from '../components/CloudinaryWidget';
 
 export default function ApplyOnline() {
   const navigate = useNavigate();
@@ -26,6 +27,9 @@ export default function ApplyOnline() {
     address: '',
     previousSchool: '',
     classToApply: '',
+    birthCertificate: '',
+    studentPhotoUrl: '',
+    birthCertificateUrl: '',
   });
 
   useEffect(() => {
@@ -47,6 +51,9 @@ export default function ApplyOnline() {
             address: app.address || '',
             previousSchool: app.previousSchool || '',
             classToApply: app.classToApply || '',
+            birthCertificate: app.birthCertificate || '',
+            studentPhotoUrl: app.studentPhotoUrl || '',
+            birthCertificateUrl: app.birthCertificateUrl || '',
           });
         }
       }
@@ -98,6 +105,30 @@ export default function ApplyOnline() {
     const formDataObj = new FormData(form);
     const data = Object.fromEntries(formDataObj.entries());
 
+    // Validate Birth Certificate (17 digits)
+    const bcNumber = data.birthCertificate as string;
+    if (!/^\d{17}$/.test(bcNumber)) {
+      setPaymentError('Birth Certificate number must be exactly 17 digits.');
+      setIsProcessing(false);
+      return;
+    }
+
+    // Validate Uploads
+    if (!formData.studentPhotoUrl) {
+      setPaymentError('Please upload the student photo.');
+      setIsProcessing(false);
+      return;
+    }
+    if (!formData.birthCertificateUrl) {
+      setPaymentError('Please upload the birth certificate scan.');
+      setIsProcessing(false);
+      return;
+    }
+
+    // Add Cloudinary URLs to data
+    data.studentPhotoUrl = formData.studentPhotoUrl;
+    data.birthCertificateUrl = formData.birthCertificateUrl;
+
     if (existingApp) {
       // Update existing application directly
       try {
@@ -114,6 +145,9 @@ export default function ApplyOnline() {
           address: data.address as string,
           previousSchool: data.previousSchool as string,
           classToApply: data.classToApply as string,
+          birthCertificate: data.birthCertificate as string,
+          studentPhotoUrl: data.studentPhotoUrl as string,
+          birthCertificateUrl: data.birthCertificateUrl as string,
         });
 
         if (success) {
@@ -146,6 +180,7 @@ export default function ApplyOnline() {
           phone: data.phone,
           address: data.address,
           classToApply: data.classToApply,
+          birthCertificate: data.birthCertificate,
           amount: admissionFee
         }),
       });
@@ -209,6 +244,10 @@ export default function ApplyOnline() {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Date of Birth *</label>
                   <input required type="date" name="dob" value={formData.dob} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
                 </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Birth Certificate Number (17 Digits) *</label>
+                  <input required type="text" name="birthCertificate" value={formData.birthCertificate} onChange={handleChange} placeholder="e.g. 20051234567890123" maxLength={17} minLength={17} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Gender *</label>
                   <select required name="gender" value={formData.gender} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
@@ -269,6 +308,57 @@ export default function ApplyOnline() {
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Present Address *</label>
                   <textarea required name="address" value={formData.address} onChange={handleChange} rows={3} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"></textarea>
+                </div>
+              </div>
+            </div>
+
+            {/* Document Uploads */}
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center border-b border-slate-100 dark:border-slate-800 pb-2">
+                <FileText className="w-5 h-5 mr-2 text-blue-500" /> Required Documents
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-4 bg-slate-50 dark:bg-slate-800/50">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex items-center">
+                    <ImageIcon className="w-4 h-4 mr-1 text-slate-500" /> Student Photo *
+                  </label>
+                  <div className="flex flex-col items-start gap-3">
+                    {formData.studentPhotoUrl ? (
+                      <div className="relative">
+                        <img src={formData.studentPhotoUrl} alt="Student" className="w-24 h-24 object-cover rounded-lg border border-slate-300 dark:border-slate-600" />
+                        <button type="button" onClick={() => setFormData({...formData, studentPhotoUrl: ''})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>
+                      </div>
+                    ) : (
+                      <CloudinaryWidget 
+                        onUploadSuccess={(url) => setFormData({...formData, studentPhotoUrl: url})} 
+                        buttonText="Upload Photo"
+                        resourceType="image"
+                      />
+                    )}
+                    <p className="text-xs text-slate-500">Upload a clear passport-size photo.</p>
+                  </div>
+                </div>
+
+                <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-4 bg-slate-50 dark:bg-slate-800/50">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex items-center">
+                    <FileText className="w-4 h-4 mr-1 text-slate-500" /> Birth Certificate Scan *
+                  </label>
+                  <div className="flex flex-col items-start gap-3">
+                    {formData.birthCertificateUrl ? (
+                      <div className="flex items-center gap-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-3 py-2 rounded-lg border border-green-200 dark:border-green-800">
+                        <CheckCircle2 className="w-5 h-5" />
+                        <span className="text-sm font-medium">Document Uploaded</span>
+                        <button type="button" onClick={() => setFormData({...formData, birthCertificateUrl: ''})} className="ml-2 text-red-500 hover:text-red-700 text-sm font-bold">Remove</button>
+                      </div>
+                    ) : (
+                      <CloudinaryWidget 
+                        onUploadSuccess={(url) => setFormData({...formData, birthCertificateUrl: url})} 
+                        buttonText="Upload Scan"
+                        resourceType="auto"
+                      />
+                    )}
+                    <p className="text-xs text-slate-500">Upload a clear scan of the birth certificate (Image or PDF).</p>
+                  </div>
                 </div>
               </div>
             </div>
