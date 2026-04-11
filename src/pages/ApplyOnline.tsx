@@ -337,39 +337,4 @@ export default function ApplyOnline() {
                           />
                           <span className="ml-3 text-sm text-slate-700 dark:text-slate-300">Yes</span>
                         </div>
-                      ) : (
-                        <input
-                          required={field.required}
-                          type={field.type}
-                          name={field.label}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="pt-6">
-              {!existingApp && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-4 mb-6">
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-700 dark:text-slate-300 font-medium">Admission Fee:</span>
-                    <span className="text-xl font-bold text-blue-600 dark:text-blue-400">৳{admissionFee}</span>
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                    You will be redirected to a secure payment gateway to complete your application.
-                  </p>
-                </div>
-              )}
-              <button type="submit" disabled={isProcessing} className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm shadow-blue-500/20 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed">
-                {isProcessing ? 'Processing...' : existingApp ? 'Update Application' : `Proceed to Secure Payment (৳${admissionFee})`}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
-}
+          
