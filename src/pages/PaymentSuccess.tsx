@@ -13,7 +13,15 @@ export default function PaymentSuccess() {
   const [studentData, setStudentData] = useState<any>(null);
   const { user } = useAuth();
   
-  const transactionId = searchParams.get('transactionId') || searchParams.get('transaction_id') || searchParams.get('trx_id');
+  // Try to get the real bank/mobile TrxID first, fallback to gateway's order ID
+  const transactionId = searchParams.get('bank_trx_id') || 
+                        searchParams.get('sender_trx_id') || 
+                        searchParams.get('mobile_trx_id') || 
+                        searchParams.get('trxId') || 
+                        searchParams.get('transactionId') || 
+                        searchParams.get('transaction_id') || 
+                        searchParams.get('trx_id');
+  
   const paymentAmount = searchParams.get('paymentAmount') || searchParams.get('amount');
   const status = searchParams.get('status')?.toLowerCase();
 
@@ -39,11 +47,10 @@ export default function PaymentSuccess() {
           };
 
           // 2. Submit to Formspree
-          const formspreeEndpoint = import.meta.env.VITE_FORMSPREE_ENDPOINT || import.meta.env.FORMSPREE_ENDPOINT;
-          if (!formspreeEndpoint) {
-            console.error('Formspree endpoint not configured');
-            throw new Error('Formspree endpoint not configured');
-          }
+          // Using the direct URL since Formspree endpoints are meant to be public 
+          // and Vite hides non-VITE_ prefixed env vars from the browser.
+          const formspreeEndpoint = import.meta.env.VITE_FORMSPREE_ENDPOINT || 'https://formspree.io/f/xwvwnnqp';
+          
           const response = await fetch(formspreeEndpoint, {
             method: 'POST',
             headers: {
