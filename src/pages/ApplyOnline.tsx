@@ -168,8 +168,8 @@ export default function ApplyOnline() {
       // 1. Save form data to localStorage to submit to Formspree AFTER successful payment
       localStorage.setItem('pendingAdmissionData', JSON.stringify(data));
 
-      // 2. Call Netlify Function to get payment URL
-      const response = await fetch('/.netlify/functions/createPayment', {
+      // 2. Call Vercel Function to get payment URL
+      const response = await fetch('/api/createPayment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -374,6 +374,8 @@ export default function ApplyOnline() {
                   <select required name="classToApply" value={formData.classToApply} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
                     <option value="">Select Class</option>
                     <option value="6">Class 6</option>
+                    <option value="7">Class 7</option>
+                    <option value="8">Class 8</option>
                     <option value="9">Class 9 (SSC Vocational)</option>
                     <option value="11">Class 11 (HSC Vocational)</option>
                   </select>

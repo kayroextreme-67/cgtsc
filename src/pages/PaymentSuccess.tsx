@@ -69,7 +69,7 @@ export default function PaymentSuccess() {
 
           // 2.5 Send SMS via Rupantor
           try {
-            await fetch('/.netlify/functions/sendSms', {
+            await fetch('/api/sendSms', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({

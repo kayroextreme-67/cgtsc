@@ -43,7 +43,7 @@ export default function AdminApplications() {
 
       // Send SMS
       try {
-        await fetch('/.netlify/functions/sendSms', {
+        await fetch('/api/sendSms', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -72,7 +72,7 @@ export default function AdminApplications() {
       if (app) {
         // Send SMS
         try {
-          await fetch('/.netlify/functions/sendSms', {
+          await fetch('/api/sendSms', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
