@@ -28,6 +28,7 @@ export default function AdminUsers() {
   }, []);
 
   const handleApprove = async (id: string) => {
+    const userToApprove = users.find(u => u.id === id);
     const updated = await updateUser(id, { status: 'approved' });
     if (updated) {
       toast.success('User approved successfully.');
