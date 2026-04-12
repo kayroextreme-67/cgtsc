@@ -19,6 +19,11 @@ export default function CloudinaryWidget({
   children
 }: CloudinaryWidgetProps) {
   const widgetRef = useRef<any>(null);
+  const onUploadSuccessRef = useRef(onUploadSuccess);
+
+  useEffect(() => {
+    onUploadSuccessRef.current = onUploadSuccess;
+  }, [onUploadSuccess]);
 
   useEffect(() => {
     // Try VITE_ prefixed variables first, fallback to non-prefixed if they exist in the environment
@@ -48,12 +53,14 @@ export default function CloudinaryWidget({
         (error: any, result: any) => {
           if (!error && result && result.event === 'success') {
             console.log('Done! Here is the image info: ', result.info);
-            onUploadSuccess(result.info.secure_url);
+            if (onUploadSuccessRef.current) {
+              onUploadSuccessRef.current(result.info.secure_url);
+            }
           }
         }
       );
     }
-  }, [onUploadSuccess, resourceType, folder]);
+  }, [resourceType, folder]);
 
   const openWidget = (e: React.MouseEvent) => {
     e.preventDefault();
