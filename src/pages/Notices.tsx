@@ -24,11 +24,19 @@ export default function Notices() {
     return matchesSearch && matchesCategory;
   });
 
+  const getAbsoluteUrl = (url: string) => {
+    if (!url) return '#';
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return `https://${url}`;
+  };
+
   const getDownloadUrl = (url: string) => {
-    if (url.includes('cloudinary.com') && !url.includes('fl_attachment')) {
-      return url.replace('/upload/', '/upload/fl_attachment/');
+    if (!url) return '#';
+    const absoluteUrl = getAbsoluteUrl(url);
+    if (absoluteUrl.includes('cloudinary.com') && !absoluteUrl.includes('fl_attachment')) {
+      return absoluteUrl.replace('/upload/', '/upload/fl_attachment/');
     }
-    return url;
+    return absoluteUrl;
   };
 
   return (
@@ -113,7 +121,7 @@ export default function Notices() {
                     <div className="flex sm:flex-col gap-3 shrink-0">
                       {notice.fileUrl && (
                         <>
-                          <a href={notice.fileUrl} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-slate-200 dark:border-slate-700 text-sm font-medium rounded-xl text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                          <a href={getAbsoluteUrl(notice.fileUrl)} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-slate-200 dark:border-slate-700 text-sm font-medium rounded-xl text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                             <FileText className="w-4 h-4 mr-2" /> View PDF
                           </a>
                           <a href={getDownloadUrl(notice.fileUrl)} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
@@ -122,7 +130,7 @@ export default function Notices() {
                         </>
                       )}
                       {notice.linkUrl && (
-                        <a href={notice.linkUrl} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-slate-200 dark:border-slate-700 text-sm font-medium rounded-xl text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                        <a href={getAbsoluteUrl(notice.linkUrl)} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-slate-200 dark:border-slate-700 text-sm font-medium rounded-xl text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                           <LinkIcon className="w-4 h-4 mr-2" /> View Link
                         </a>
                       )}
