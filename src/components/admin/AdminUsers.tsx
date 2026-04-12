@@ -5,6 +5,7 @@ import { doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useToast } from '../../contexts/ToastContext';
 import ConfirmModal from '../ConfirmModal';
+import { sendApprovalEmail } from '../../lib/emailService';
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
@@ -32,6 +33,9 @@ export default function AdminUsers() {
     const updated = await updateUser(id, { status: 'approved' });
     if (updated) {
       toast.success('User approved successfully.');
+      if (userToApprove && userToApprove.email) {
+        sendApprovalEmail(userToApprove.name, userToApprove.email).catch(console.error);
+      }
       await loadUsers();
     }
   };

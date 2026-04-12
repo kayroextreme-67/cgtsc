@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getApplications, updateApplication, updateUser, AdmissionApplication } from '../../lib/db';
 import { CheckCircle, XCircle, Search, Eye, X, Save } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
+import { sendApprovalEmail } from '../../lib/emailService';
 
 export default function AdminApplications() {
   const [applications, setApplications] = useState<AdmissionApplication[]>([]);
@@ -40,6 +41,11 @@ export default function AdminApplications() {
         section: approveForm.section as any,
         phone: viewingApp.phone
       });
+
+      // Send Email
+      if (viewingApp.email) {
+        sendApprovalEmail(viewingApp.studentName, viewingApp.email).catch(console.error);
+      }
 
       // Send SMS
       try {
